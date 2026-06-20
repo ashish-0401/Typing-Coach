@@ -6,6 +6,7 @@ import { HealthPage } from './pages/HealthPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { TypingTestPage } from './pages/TypingTestPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: <StyleGuidePage /> },
       { path: '/health', element: <HealthPage /> },
+      { path: '/typing', element: <TypingTestPage /> },
       {
         path: '/dashboard',
         element: (

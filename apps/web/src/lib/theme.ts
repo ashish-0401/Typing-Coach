@@ -12,17 +12,18 @@ interface ThemeState {
 export const useTheme = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: 'light',
-      toggle: () => set({ theme: get().theme === 'light' ? 'dark' : 'light' }),
+      theme: 'dark',
+      toggle: () => set({ theme: get().theme === 'dark' ? 'light' : 'dark' }),
       setTheme: (theme) => set({ theme }),
     }),
-    { name: 'apc-theme' },
+    { name: 'apc-theme-v2' },
   ),
 );
 
 // Keep the <html> class in sync with the store (runs on load + every change).
+// The app is dark by default, so we only add a class for light mode.
 function applyTheme(theme: Theme): void {
-  document.documentElement.classList.toggle('dark', theme === 'dark');
+  document.documentElement.classList.toggle('light', theme === 'light');
 }
 
 applyTheme(useTheme.getState().theme);

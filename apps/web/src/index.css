@@ -1,57 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-/* Class-based dark mode (toggled on <html>) instead of the OS default. */
-@custom-variant dark (&:where(.dark, .dark *));
+/* Light theme is an opt-in override; the app is dark-first. */
+@custom-variant light (&:where(.light, .light *));
 
-/* Semantic tokens — light theme (default). Anti-pattern: never dark-by-default. */
+/* ---- Dark theme (default) ---- */
 :root {
-  --background: #ecfeff;
-  --foreground: #164e63;
-  --muted: #4b7686;
+  --background: #0e1013;
+  --card: #15181d;
+  --elevated: #1b1f26;
+  --border: #262b33;
+  --foreground: #e7eaf0;
+  --muted: #717986;
+  --faint: #3a414c;
+  --primary: #2dd4bf;
+  --primary-hover: #5eead4;
+  --primary-foreground: #06231f;
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-foreground: #06231f;
+  --error: #f2616b;
+  --ring: #2dd4bf;
+}
+
+/* ---- Light theme override ---- */
+.light {
+  --background: #f4f5f7;
   --card: #ffffff;
-  --border: #cff3f8;
-  --primary: #0891b2;
-  --primary-hover: #0e7490;
+  --elevated: #ffffff;
+  --border: #e3e6ea;
+  --foreground: #1a1d22;
+  --muted: #7b818c;
+  --faint: #c2c7cf;
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
   --primary-foreground: #ffffff;
-  --accent: #059669;
-  --accent-hover: #047857;
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
   --accent-foreground: #ffffff;
-  --ring: #0891b2;
+  --error: #dc2626;
+  --ring: #0d9488;
 }
 
-/* Dark theme overrides. */
-.dark {
-  --background: #0a1820;
-  --foreground: #e2f4f8;
-  --muted: #8fb3bf;
-  --card: #0f2330;
-  --border: #1d3a47;
-  --primary: #22d3ee;
-  --primary-hover: #67e8f9;
-  --primary-foreground: #052430;
-  --accent: #10b981;
-  --accent-hover: #34d399;
-  --accent-foreground: #04211a;
-  --ring: #22d3ee;
-}
-
-/* Expose the semantic tokens to Tailwind so utilities flip with the theme. */
 @theme inline {
   --color-background: var(--background);
+  --color-card: var(--card);
+  --color-elevated: var(--elevated);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
-  --color-card: var(--card);
-  --color-border: var(--border);
+  --color-faint: var(--faint);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
+  --color-error: var(--error);
   --color-ring: var(--ring);
-  --font-sans: 'Raleway', ui-sans-serif, system-ui, sans-serif;
-  --font-heading: 'Lora', ui-serif, Georgia, serif;
+  --font-sans: 'Lexend', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Lexend', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
 }
 
 body {
@@ -61,7 +70,7 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Respect reduced-motion preferences (flat design = minimal motion anyway). */
+/* Respect reduced-motion preferences. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -71,3 +80,28 @@ body {
   }
 }
 
+/* Typing caret: smooth glide between characters + idle blink. */
+@keyframes typing-caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.typing-caret {
+  position: absolute;
+  width: 3px;
+  border-radius: 9999px;
+  background-color: var(--color-accent);
+  transition:
+    left 90ms ease,
+    top 90ms ease,
+    height 90ms ease;
+}
+
+.typing-caret--idle {
+  animation: typing-caret-blink 1s step-start infinite;
+}

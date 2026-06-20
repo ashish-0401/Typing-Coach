@@ -16,26 +16,31 @@
 
 ### Color Palette
 
-| Role | Hex | CSS Variable |
-|------|-----|--------------|
-| Primary | `#0891B2` | `--color-primary` |
-| Secondary | `#22D3EE` | `--color-secondary` |
-| CTA/Accent | `#059669` | `--color-cta` |
-| Background | `#ECFEFF` | `--color-background` |
-| Text | `#164E63` | `--color-text` |
+Dark-first, MonkeyType-inspired but with our own teal accent (not their yellow).
+Tokens flip via CSS variables; light mode is an opt-in `.light` override.
 
-**Color Notes:** Calm cyan + health green
+| Role | Dark (default) | Light | CSS Variable |
+|------|----------------|-------|--------------|
+| Background | `#0E1013` | `#F4F5F7` | `--color-background` |
+| Card/Surface | `#15181D` | `#FFFFFF` | `--color-card` |
+| Border | `#262B33` | `#E3E6EA` | `--color-border` |
+| Foreground (text) | `#E7EAF0` | `#1A1D22` | `--color-foreground` |
+| Muted | `#717986` | `#7B818C` | `--color-muted` |
+| Accent / Primary | `#2DD4BF` | `#0D9488` | `--color-accent` |
+| Error | `#F2616B` | `#DC2626` | `--color-error` |
+
+**Color Notes:** Charcoal base + distinctive teal accent (caret, active, CTAs). Dark by default.
 
 ### Typography
 
-- **Heading Font:** Lora
-- **Body Font:** Raleway
-- **Mood:** calm, wellness, health, relaxing, natural, organic
-- **Google Fonts:** [Lora + Raleway](https://fonts.google.com/share?selection.family=Lora:wght@400;500;600;700|Raleway:wght@300;400;500;600;700)
+- **UI Font:** Lexend
+- **Mono Font (typing surface, numbers, stats):** JetBrains Mono
+- **Mood:** focused, modern, minimal, developer-tool, distraction-free
+- **Google Fonts:** [Lexend + JetBrains Mono](https://fonts.google.com/share?selection.family=Lexend:wght@300;400;500;600;700|JetBrains+Mono:wght@400;500;600;700)
 
 **CSS Import:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 ```
 
 ### Spacing Variables
@@ -174,7 +179,7 @@
 ## Anti-Patterns (Do NOT Use)
 
 - ❌ Excessive animation
-- ❌ Dark mode by default
+- ❌ Copying MonkeyType's exact colors/fonts (use our own teal accent + Lexend/JetBrains Mono)
 
 ### Additional Forbidden Patterns
 
