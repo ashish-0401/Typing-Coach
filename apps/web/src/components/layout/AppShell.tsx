@@ -31,9 +31,12 @@ export function AppShell() {
             >
               <img src="/wazakey-logo.svg" alt="WazaKey" className="h-7 w-7 rounded-md" />
               <span className="leading-tight">
-                <span className="block">WazaKey</span>
-                <span className="block font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
-                  your typing dojo
+                <span className="block">
+                  <span className="text-foreground">Waza</span>
+                  <span className="text-accent">Key</span>
+                </span>
+                <span className="block font-mono text-[10px] font-medium tracking-widest text-muted">
+                  <span className="text-accent">--</span> Your Typing Dojo <span className="text-accent">--</span>
                 </span>
               </span>
             </Link>
