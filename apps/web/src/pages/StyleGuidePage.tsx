@@ -27,7 +27,7 @@ export function StyleGuidePage() {
     <>
       <PageHeading
         title="Style Guide"
-        subtitle="The design system foundation — colors, typography and reusable primitives."
+        subtitle="The design system foundation: colors, typography and reusable primitives."
       />
 
       <Section title="Typography">

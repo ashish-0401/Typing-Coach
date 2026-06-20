@@ -1,4 +1,4 @@
-# AI Practice Coach — Project Instructions
+# AI Practice Coach: Project Instructions
 
 These instructions apply to all work in this repository. Copilot reads them automatically on every request.
 Full design lives in [docs/AI-Practice-Coach-Design.md](../docs/AI-Practice-Coach-Design.md).
@@ -7,16 +7,16 @@ Full design lives in [docs/AI-Practice-Coach-Design.md](../docs/AI-Practice-Coac
 
 **AI Practice Coach** is an AI-powered coaching platform that learns from a user's performance,
 identifies weaknesses, builds training plans, generates exercises, and acts as a long-term coach.
-**Typing is only the first skill module** — the architecture must support future modules
+**Typing is only the first skill module.** The architecture must support future modules
 (Coding, Interview Prep, Vocabulary, Language Learning) **without major refactoring**.
 
 ## Guiding principles
 
 - Ship a deployable MVP first; **introduce AI only after the foundation exists** (Phase 3+).
 - Keep everything on **free tiers**. Optimize for simplicity, maintainability, and fast delivery.
-- Prefer a **modular monolith** — do NOT add microservices, Kafka, Redis, event buses, vector
+- Prefer a **modular monolith**. Do NOT add microservices, Kafka, Redis, event buses, vector
   databases, or Kubernetes unless explicitly justified and requested.
-- Keep AI providers **replaceable** — isolate Groq behind an `ai` module/interface.
+- Keep AI providers **replaceable**: isolate Groq behind an `ai` module/interface.
 - Preserve user history **permanently** (long-term memory is a core requirement).
 
 ## Tech stack
@@ -43,7 +43,7 @@ Do not introduce other major dependencies without asking.
 - Target repo layout: `apps/web` (frontend) and `apps/api` (backend).
 - **Guest mode (try-before-signup):** the Typing Test is **public** so visitors can try it
   without an account. Guest results are **local-only** (component state / `localStorage`) and are
-  **never persisted to MongoDB** — this keeps the permanent-history model tied to real accounts.
+  **never persisted to MongoDB**. This keeps the permanent-history model tied to real accounts.
   Anything implying identity (Dashboard, Session History, Learning Profile, `POST /sessions`) stays
   behind the auth guard. Do NOT create anonymous/guest DB user records. On first signup we may
   optionally migrate the guest's last local session into the new account.
@@ -54,13 +54,16 @@ Do not introduce other major dependencies without asking.
 - Validate all API inputs with DTOs + `class-validator`.
 - Keep typing metrics logic (WPM, accuracy, mistyped-word/backspace tracking) in the
   `typing` domain, separate from UI.
-- Never hardcode secrets — use environment variables (`.env`, already git-ignored).
+- Never hardcode secrets. Use environment variables (`.env`, already git-ignored).
 - For UI/UX design, use the `ui-ux-pro-max` skill and default to `--stack react`
   (this project uses React + TailwindCSS) unless told otherwise.
 - **Desktop-first, not mobile.** This is a keyboard-driven app (typing test), so design and
   style for desktop viewports only. Do NOT add mobile/responsive variants
   unless solving a real desktop sizing issue. The only concession to small screens is a single
-  "use a desktop with a physical keyboard" fallback message — never a mobile layout.
+  "use a desktop with a physical keyboard" fallback message, never a mobile layout.
+- **No em dashes (—), ever.** They read as machine-written and don't feel human. Use periods,
+  commas, colons, or parentheses instead, across UI copy, code comments, commit messages,
+  docs, and chat responses.
 
 ## Conventions
 
@@ -69,7 +72,7 @@ Do not introduce other major dependencies without asking.
 
 ## Git & branching workflow
 
-Use a lightweight **GitHub Flow**. Never commit straight to `main` — all work lands via
+Use a lightweight **GitHub Flow**. Never commit straight to `main`. All work lands via
 short-lived feature branches and Pull Requests. Keep branches **few and focused**: roughly
 **one branch per major task / feature slice** (e.g. auth, typing engine, dashboard), not one
 per tiny change.
@@ -85,14 +88,19 @@ per tiny change.
   3. Open a **PR into `main`** with a short *what & why* description.
   4. Make sure **CI is green** (lint, typecheck, test, build) and self-review the diff.
   5. **Squash-merge**, then delete the branch. `git pull` on `main` before the next task.
-- **Granularity:** a roadmap phase may span a few PRs — aim for a PR reviewable in one sitting.
+- **Granularity:** a roadmap phase may span a few PRs, aim for a PR reviewable in one sitting.
   Don't let a branch live for weeks; merge or rebase onto `main` regularly to avoid conflicts.
 - **Agent behavior:** I (Copilot) may create branches, commit, and prepare PRs, but I will
   **ask for confirmation before pushing or merging**, since those affect the remote/shared repo.
 
 ## When suggesting changes
 
-- Explain new concepts briefly — I'm learning, so favor clarity over cleverness.
+- **Think through all states and edge cases up front, every time, not just the happy path.**
+  For any UI: handle loading, empty, error, success, and disabled states, and give live inline
+  feedback (e.g. show password match/mismatch as the user types, disable actions that cannot
+  succeed, prevent duplicate submits). For any logic: consider boundaries, invalid input,
+  conflicts, and what happens on repeat/restart. Anticipate how each interaction feels.
+- Explain new concepts briefly. I'm learning, so favor clarity over cleverness.
 - Respect the phase order from the design doc; don't jump ahead to AI before the MVP works.
 - Implement complete, runnable changes rather than leaving TODOs.
 - Don't add infrastructure, frameworks, or backend services beyond the stack above without asking first.

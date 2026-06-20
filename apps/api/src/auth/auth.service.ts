@@ -13,6 +13,7 @@ const SALT_ROUNDS = 10;
 
 export interface AuthUser {
   id: string;
+  name: string;
   email: string;
   createdAt: Date;
 }
@@ -29,14 +30,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string): Promise<AuthResult> {
+  async register(email: string, password: string, name: string): Promise<AuthResult> {
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
       throw new ConflictException('Email is already registered');
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await this.usersService.create(email, passwordHash);
+    const user = await this.usersService.create(email, passwordHash, name);
     return this.buildAuthResult(user);
   }
 
@@ -61,6 +62,11 @@ export class AuthService {
   }
 
   private toAuthUser(user: UserDocument): AuthUser {
-    return { id: user.id, email: user.email, createdAt: user.createdAt };
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    };
   }
 }

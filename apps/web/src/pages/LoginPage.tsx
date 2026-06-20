@@ -28,12 +28,13 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Log in to continue your practice.">
+    <AuthLayout title="Welcome back" subtitle="Good to see you again. Let's keep improving.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Email"
           type="email"
           autoComplete="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -42,12 +43,13 @@ export function LoginPage() {
           label="Password"
           type="password"
           autoComplete="current-password"
+          placeholder="Your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
         {mutation.isError && (
-          <p className="text-sm text-red-600">{mutation.error.message}</p>
+          <p className="text-sm text-error">{mutation.error.message}</p>
         )}
         <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {mutation.isPending ? 'Logging in…' : 'Log in'}

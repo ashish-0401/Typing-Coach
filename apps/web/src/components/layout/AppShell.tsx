@@ -43,12 +43,17 @@ export function AppShell() {
                   Dashboard
                 </NavLink>
               )}
+              {user && (
+                <NavLink to="/history" className={navLinkClass}>
+                  History
+                </NavLink>
+              )}
             </nav>
           </div>
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-muted">{user.email}</span>
+                <span className="text-sm text-muted">{user.name}</span>
                 <Button variant="ghost" onClick={handleLogout}>
                   Log out
                 </Button>

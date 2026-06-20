@@ -25,6 +25,12 @@ export interface AuthResult {
   user: AuthUser;
 }
 
+export interface RegisterInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
 interface ApiErrorBody {
   message?: string | string[];
 }
@@ -44,9 +50,9 @@ async function parseError(response: Response): Promise<string> {
   return `Request failed with status ${response.status}`;
 }
 
-async function postCredentials(
+async function postAuth(
   path: string,
-  body: Credentials,
+  body: Credentials | RegisterInput,
 ): Promise<AuthResult> {
   const response = await fetch(`${API_URL}${path}`, {
     method: 'POST',
@@ -59,12 +65,12 @@ async function postCredentials(
   return (await response.json()) as AuthResult;
 }
 
-export function registerRequest(body: Credentials): Promise<AuthResult> {
-  return postCredentials('/auth/register', body);
+export function registerRequest(body: RegisterInput): Promise<AuthResult> {
+  return postAuth('/auth/register', body);
 }
 
 export function loginRequest(body: Credentials): Promise<AuthResult> {
-  return postCredentials('/auth/login', body);
+  return postAuth('/auth/login', body);
 }
 
 export async function fetchMe(): Promise<AuthUser> {
@@ -76,5 +82,48 @@ export async function fetchMe(): Promise<AuthUser> {
     throw new Error(await parseError(response));
   }
   return (await response.json()) as AuthUser;
+}
+
+function authHeaders(): Record<string, string> {
+  const token = useAuth.getState().token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export interface CreateSessionInput {
+  wpm: number;
+  accuracy: number;
+  backspaces: number;
+  mistakes: string[];
+}
+
+export interface TypingSession {
+  _id: string;
+  date: string;
+  wpm: number;
+  accuracy: number;
+  backspaces: number;
+  mistakes: string[];
+}
+
+export async function createSession(body: CreateSessionInput): Promise<TypingSession> {
+  const response = await fetch(`${API_URL}/sessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as TypingSession;
+}
+
+export async function fetchSessions(): Promise<TypingSession[]> {
+  const response = await fetch(`${API_URL}/sessions`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as TypingSession[];
 }
 

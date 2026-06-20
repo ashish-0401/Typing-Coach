@@ -25,7 +25,7 @@ export class AuthController {
 
   @Post('register')
   register(@Body() dto: RegisterDto): Promise<AuthResult> {
-    return this.authService.register(dto.email, dto.password);
+    return this.authService.register(dto.email, dto.password, dto.name);
   }
 
   @Post('login')
@@ -41,6 +41,6 @@ export class AuthController {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return { id: user.id, email: user.email, createdAt: user.createdAt };
+    return { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt };
   }
 }

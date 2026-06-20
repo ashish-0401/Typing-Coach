@@ -1,5 +1,5 @@
 /**
- * Pure typing-metrics logic. No React, no DOM — safe to unit test in isolation.
+ * Pure typing-metrics logic. No React, no DOM, safe to unit test in isolation.
  *
  * Conventions (from the project design):
  *   WPM      = (characters / 5) / minutes
@@ -94,7 +94,7 @@ export function countCharStats(target: string, typed: string): CharStats {
 }
 
 /**
- * Returns the distinct target words the user mistyped — any word the typist has
+ * Returns the distinct target words the user mistyped: any word the typist has
  * reached where at least one character in that word's span doesn't match.
  */
 export function findMistypedWords(target: string, typed: string): string[] {

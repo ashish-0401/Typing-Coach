@@ -1,6 +1,7 @@
 import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ComposedChart,
   Line,
@@ -11,6 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useAuth } from '../lib/auth';
+import { createSession } from '../lib/api';
 import {
   calculateAccuracy,
   calculateWpm,
@@ -58,6 +60,13 @@ function buildTarget(mode: Mode, timeSec: number, wordCount: number): string {
 
 export function TypingTestPage() {
   const user = useAuth((s) => s.user);
+  const queryClient = useQueryClient();
+  const saveMutation = useMutation({
+    mutationFn: createSession,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    },
+  });
 
   const inputRef = useRef<HTMLInputElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -100,6 +109,7 @@ export function TypingTestPage() {
   const lastSecondRef = useRef(0);
   const prevIncorrectRef = useRef(0);
   const doneRef = useRef(false);
+  const savedRef = useRef(false);
 
   const isComplete = result !== null;
   const isActive = startTime !== null && !isComplete;
@@ -110,6 +120,20 @@ export function TypingTestPage() {
     backspacesRef.current = backspaces;
     typedRef.current = typed;
   }, [totalKeystrokes, correctKeystrokes, backspaces, typed]);
+
+  // Persist a completed session for logged-in users (guests stay local-only).
+  useEffect(() => {
+    if (result && user && !savedRef.current) {
+      savedRef.current = true;
+      saveMutation.mutate({
+        wpm: Math.round(result.wpm),
+        accuracy: Number(result.accuracy.toFixed(1)),
+        backspaces: result.backspaces,
+        mistakes: result.mistypedWords,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, user]);
 
   const finalize = useCallback(
     (durationMs: number) => {
@@ -248,6 +272,7 @@ export function TypingTestPage() {
 
   const startSession = useCallback((nextTarget: string, repeated: boolean) => {
     doneRef.current = false;
+    savedRef.current = false;
     samplesRef.current = [];
     lastSecondRef.current = 0;
     prevIncorrectRef.current = 0;
@@ -486,7 +511,23 @@ export function TypingTestPage() {
       )}
 
       {/* Results */}
-      {result && <Results result={result} onNext={nextTest} onRepeat={repeatTest} showSignup={!user} />}
+      {result && (
+        <Results
+          result={result}
+          onNext={nextTest}
+          onRepeat={repeatTest}
+          showSignup={!user}
+          savedNote={
+            user
+              ? saveMutation.isError
+                ? 'Could not save this session'
+                : saveMutation.isPending
+                  ? 'Saving…'
+                  : 'Saved to your history'
+              : null
+          }
+        />
+      )}
     </div>
   );
 }
@@ -543,11 +584,13 @@ function Results({
   onNext,
   onRepeat,
   showSignup,
+  savedNote,
 }: {
   result: SessionResult;
   onNext: () => void;
   onRepeat: () => void;
   showSignup: boolean;
+  savedNote: string | null;
 }) {
   const chartData = result.samples.map((s) => ({
     ...s,
@@ -667,7 +710,7 @@ function Results({
       <div className="mt-8">
         <h3 className="font-mono text-xs uppercase tracking-widest text-muted">Mistyped words</h3>
         {result.mistypedWords.length === 0 ? (
-          <p className="mt-2 text-muted">None — clean run!</p>
+          <p className="mt-2 text-muted">None. Clean run!</p>
         ) : (
           <div className="mt-2 flex flex-wrap gap-2">
             {result.mistypedWords.map((word) => (
@@ -683,7 +726,7 @@ function Results({
       </div>
 
       <div className="mt-10 flex items-center gap-5">
-        {/* Next test — first in tab order */}
+        {/* Next test (first in tab order) */}
         <button
           type="button"
           onClick={onNext}
@@ -704,7 +747,7 @@ function Results({
             <path d="m9 18 6-6-6-6" />
           </svg>
         </button>
-        {/* Repeat test — second in tab order, reuses the same words */}
+        {/* Repeat test (second in tab order); reuses the same words */}
         <button
           type="button"
           onClick={onRepeat}
@@ -731,6 +774,7 @@ function Results({
             Sign up to save your results
           </Link>
         )}
+        {savedNote && <span className="text-sm text-muted">{savedNote}</span>}
       </div>
     </div>
   );

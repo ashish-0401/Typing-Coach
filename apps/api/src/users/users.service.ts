@@ -9,8 +9,8 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  create(email: string, passwordHash: string): Promise<UserDocument> {
-    return this.userModel.create({ email, passwordHash });
+  create(email: string, passwordHash: string, name: string): Promise<UserDocument> {
+    return this.userModel.create({ email, passwordHash, name });
   }
 
   findByEmail(email: string): Promise<UserDocument | null> {
