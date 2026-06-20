@@ -8,6 +8,7 @@ build/
 # Environment / secrets
 .env
 .env.*
+!.env.example
 
 # Python (used by the ui-ux-pro-max skill scripts)
 __pycache__/
