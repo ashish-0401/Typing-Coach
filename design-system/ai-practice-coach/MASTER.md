@@ -183,6 +183,7 @@ Tokens flip via CSS variables; light mode is an opt-in `.light` override.
 
 ### Additional Forbidden Patterns
 
+- ❌ **Dual-axis charts:** they imply false relationships. Show ONE metric per chart with a toggle; put related metrics in the tooltip for the hovered point. Accuracy axes fixed to 0-100.
 - ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
 - ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
 - ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout

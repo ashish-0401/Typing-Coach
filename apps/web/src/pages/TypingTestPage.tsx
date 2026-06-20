@@ -53,10 +53,16 @@ interface CaretPosition {
   height: number;
 }
 
-function buildTarget(mode: Mode, timeSec: number, wordCount: number): string {
+function buildTarget(
+  mode: Mode,
+  timeSec: number,
+  wordCount: number,
+  punctuation: boolean,
+  numbers: boolean,
+): string {
   return mode === 'time'
-    ? generateWords(Math.max(60, timeSec * 3))
-    : generateWords(wordCount);
+    ? generateWords(Math.max(60, timeSec * 3), { punctuation, numbers })
+    : generateWords(wordCount, { punctuation, numbers });
 }
 
 export function TypingTestPage() {
@@ -83,14 +89,18 @@ export function TypingTestPage() {
   const mode = useTypingConfig((s) => s.mode);
   const timeSec = useTypingConfig((s) => s.timeSec);
   const wordCount = useTypingConfig((s) => s.wordCount);
+  const punctuation = useTypingConfig((s) => s.punctuation);
+  const numbers = useTypingConfig((s) => s.numbers);
   const setMode = useTypingConfig((s) => s.setMode);
   const setTimeSec = useTypingConfig((s) => s.setTimeSec);
   const setWordCount = useTypingConfig((s) => s.setWordCount);
+  const setPunctuation = useTypingConfig((s) => s.setPunctuation);
+  const setNumbers = useTypingConfig((s) => s.setNumbers);
 
   // Session
   const [target, setTarget] = useState<string>(() => {
     const c = useTypingConfig.getState();
-    return buildTarget(c.mode, c.timeSec, c.wordCount);
+    return buildTarget(c.mode, c.timeSec, c.wordCount, c.punctuation, c.numbers);
   });
   const [typed, setTyped] = useState('');
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -302,8 +312,8 @@ export function TypingTestPage() {
   }, []);
 
   const nextTest = useCallback(() => {
-    startSession(buildTarget(mode, timeSec, wordCount), false);
-  }, [startSession, mode, timeSec, wordCount]);
+    startSession(buildTarget(mode, timeSec, wordCount, punctuation, numbers), false);
+  }, [startSession, mode, timeSec, wordCount, punctuation, numbers]);
 
   const repeatTest = useCallback(() => {
     startSession(target, true);
@@ -311,17 +321,29 @@ export function TypingTestPage() {
 
   function chooseMode(nextMode: Mode) {
     setMode(nextMode);
-    startSession(buildTarget(nextMode, timeSec, wordCount), false);
+    startSession(buildTarget(nextMode, timeSec, wordCount, punctuation, numbers), false);
   }
 
   function chooseAmount(value: number) {
     if (mode === 'time') {
       setTimeSec(value);
-      startSession(buildTarget('time', value, wordCount), false);
+      startSession(buildTarget('time', value, wordCount, punctuation, numbers), false);
     } else {
       setWordCount(value);
-      startSession(buildTarget('words', timeSec, value), false);
+      startSession(buildTarget('words', timeSec, value, punctuation, numbers), false);
     }
+  }
+
+  function togglePunctuation() {
+    const next = !punctuation;
+    setPunctuation(next);
+    startSession(buildTarget(mode, timeSec, wordCount, next, numbers), false);
+  }
+
+  function toggleNumbers() {
+    const next = !numbers;
+    setNumbers(next);
+    startSession(buildTarget(mode, timeSec, wordCount, punctuation, next), false);
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -412,6 +434,13 @@ export function TypingTestPage() {
                   {value}
                 </TabButton>
               ))}
+              <span className="mx-2 h-5 w-px bg-border" />
+              <TabButton active={punctuation} onClick={togglePunctuation}>
+                punctuation
+              </TabButton>
+              <TabButton active={numbers} onClick={toggleNumbers}>
+                numbers
+              </TabButton>
             </div>
           </div>
 
