@@ -65,7 +65,7 @@ short-lived feature branches and Pull Requests. Keep branches **few and focused*
 per tiny change.
 
 - **Branch names:** `<type>/<short-kebab-summary>` where `<type>` is one of
-  `feat` · `fix` · `chore` · `docs` · `refactor` · `test` (e.g. `feat/typing-engine`,
+  `feat` · `fix` · `chore` · `docs` · `refactor` · `test` (e.g. `feat/typing-test`,
   `fix/wpm-rounding`).
 - **Commits:** use [Conventional Commits](https://www.conventionalcommits.org)
   (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`). Commit in small, logical steps.
