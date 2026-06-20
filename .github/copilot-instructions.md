@@ -41,6 +41,12 @@ Do not introduce other major dependencies without asking.
 - **Frontend pages:** Login, Register, Dashboard, Typing Test, Session History, Learning
   Profile, AI Coach, Settings.
 - Target repo layout: `apps/web` (frontend) and `apps/api` (backend).
+- **Guest mode (try-before-signup):** the Typing Test is **public** so visitors can try it
+  without an account. Guest results are **local-only** (component state / `localStorage`) and are
+  **never persisted to MongoDB** — this keeps the permanent-history model tied to real accounts.
+  Anything implying identity (Dashboard, Session History, Learning Profile, `POST /sessions`) stays
+  behind the auth guard. Do NOT create anonymous/guest DB user records. On first signup we may
+  optionally migrate the guest's last local session into the new account.
 
 ## Code style
 

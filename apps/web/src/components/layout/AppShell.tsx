@@ -1,5 +1,7 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '../ThemeToggle';
+import { Button } from '../ui/Button';
+import { useAuth } from '../../lib/auth';
 
 function navLinkClass({ isActive }: { isActive: boolean }): string {
   return (
@@ -9,6 +11,15 @@ function navLinkClass({ isActive }: { isActive: boolean }): string {
 }
 
 export function AppShell() {
+  const navigate = useNavigate();
+  const user = useAuth((s) => s.user);
+  const logout = useAuth((s) => s.logout);
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-card/60 backdrop-blur">
@@ -24,9 +35,28 @@ export function AppShell() {
               <NavLink to="/health" className={navLinkClass}>
                 Health
               </NavLink>
+              {user && (
+                <NavLink to="/dashboard" className={navLinkClass}>
+                  Dashboard
+                </NavLink>
+              )}
             </nav>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <span className="text-sm text-muted">{user.email}</span>
+                <Button variant="ghost" onClick={handleLogout}>
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <NavLink to="/login" className={navLinkClass}>
+                Log in
+              </NavLink>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
