@@ -49,6 +49,8 @@ Do not introduce other major dependencies without asking.
 - Keep typing metrics logic (WPM, accuracy, mistyped-word/backspace tracking) in the
   `typing` domain, separate from UI.
 - Never hardcode secrets — use environment variables (`.env`, already git-ignored).
+- For UI/UX design, use the `ui-ux-pro-max` skill and default to `--stack react`
+  (this project uses React + TailwindCSS) unless told otherwise.
 
 ## Conventions
 
