@@ -25,14 +25,14 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
             aria-hidden
           />
           <div className="flex items-center gap-2">
-            <img src="/wazakey-logo.svg" alt="WazaKey" className="h-6 w-6 rounded-md" />
+            <img src="/WazaKey.png" alt="WazaKey" className="h-8 w-8 rounded-md" />
             <span className="leading-tight">
-              <span className="block font-mono text-sm font-medium tracking-tight">
+              <span className="block text-lg font-semibold tracking-tight">
                 <span className="text-foreground">Waza</span>
                 <span className="text-accent">Key</span>
               </span>
-              <span className="block font-mono text-[10px] font-medium tracking-widest text-muted">
-                <span className="text-accent">--</span> Your Typing Dojo <span className="text-accent">--</span>
+              <span className="block text-center font-mono text-[11px] font-medium tracking-widest text-muted">
+                <span className="text-accent">-</span> Your Typing Dojo <span className="text-accent">-</span>
               </span>
             </span>
           </div>
