@@ -25,15 +25,15 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
             aria-hidden
           />
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
+            <img src="/wazakey-logo.svg" alt="WazaKey" className="h-6 w-6 rounded-md" />
             <span className="font-mono text-sm font-medium tracking-tight text-foreground">
-              AI Practice Coach
+              WazaKey
             </span>
           </div>
 
           <div className="my-10">
             <h2 className="font-heading text-4xl font-semibold leading-tight text-foreground">
-              Type. <span className="text-accent">Track.</span> Improve.
+              Type with <span className="text-accent">technique.</span>
             </h2>
             <div className="mt-6 rounded-lg border border-border bg-background/40 p-4 font-mono text-sm">
               <span className="text-foreground">the quick brown</span>

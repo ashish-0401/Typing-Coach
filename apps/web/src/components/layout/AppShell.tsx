@@ -29,8 +29,13 @@ export function AppShell() {
               to="/"
               className="flex items-center gap-2 font-heading text-lg font-semibold text-foreground"
             >
-              <span className="h-2.5 w-2.5 rounded-full bg-accent" />
-              AI Practice Coach
+              <img src="/wazakey-logo.svg" alt="WazaKey" className="h-7 w-7 rounded-md" />
+              <span className="leading-tight">
+                <span className="block">WazaKey</span>
+                <span className="block font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
+                  typing by technique
+                </span>
+              </span>
             </Link>
             <nav className="flex items-center gap-1">
               <NavLink to="/" end className={navLinkClass}>
