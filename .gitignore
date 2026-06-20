@@ -1,0 +1,18 @@
+# Dependencies (when a build step is added later)
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+*.log
+
+# Keep editor settings local
+.vscode/
