@@ -15,9 +15,7 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      { path: '/', element: <StyleGuidePage /> },
-      { path: '/health', element: <HealthPage /> },
-      { path: '/typing', element: <TypingTestPage /> },
+      { path: '/', element: <TypingTestPage /> },
       {
         path: '/dashboard',
         element: (
@@ -34,6 +32,9 @@ export const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
+      // Developer/internal routes (not in the main nav).
+      { path: '/style-guide', element: <StyleGuidePage /> },
+      { path: '/health', element: <HealthPage /> },
     ],
   },
 ]);

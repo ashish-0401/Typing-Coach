@@ -127,3 +127,21 @@ export async function fetchSessions(): Promise<TypingSession[]> {
   return (await response.json()) as TypingSession[];
 }
 
+export interface AnalyticsSummary {
+  currentWpm: number;
+  averageWpm: number;
+  bestWpm: number;
+  averageAccuracy: number;
+  totalSessions: number;
+}
+
+export async function fetchAnalyticsSummary(): Promise<AnalyticsSummary> {
+  const response = await fetch(`${API_URL}/analytics/summary`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as AnalyticsSummary;
+}
+

@@ -1,6 +1,6 @@
 import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ComposedChart,
@@ -23,6 +23,7 @@ import {
 import { generateWords } from '../typing/words';
 import { useTypingConfig } from '../typing/config';
 import type { Mode } from '../typing/config';
+import { Toast } from '../components/ui/Toast';
 
 const TIME_OPTIONS = [15, 30, 60] as const;
 const WORD_OPTIONS = [10, 25, 50] as const;
@@ -60,6 +61,11 @@ function buildTarget(mode: Mode, timeSec: number, wordCount: number): string {
 
 export function TypingTestPage() {
   const user = useAuth((s) => s.user);
+  const location = useLocation();
+  const navState = location.state as { justSignedUp?: boolean; justLoggedIn?: boolean } | null;
+  const justSignedUp = navState?.justSignedUp ?? false;
+  const justLoggedIn = navState?.justLoggedIn ?? false;
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const queryClient = useQueryClient();
   const saveMutation = useMutation({
     mutationFn: createSession,
@@ -262,7 +268,12 @@ export function TypingTestPage() {
   useEffect(() => {
     function handleKeydown(event: WindowEventMap['keydown']) {
       setCapsLock(event.getModifierState('CapsLock'));
-      if (!isFocused) {
+      // When the input has lost focus (overlay showing), the first key should only
+      // refocus, not type or start the test. Swallow it unless it's a browser shortcut.
+      if (!doneRef.current && !isFocused) {
+        if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          event.preventDefault();
+        }
         focusInput();
       }
     }
@@ -366,6 +377,20 @@ export function TypingTestPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
+      {(justSignedUp || justLoggedIn) && user && !welcomeDismissed && (
+        <Toast
+          onClose={() => setWelcomeDismissed(true)}
+          message={
+            <>
+              {justSignedUp ? 'Welcome aboard, ' : 'Welcome back, '}
+              <span className="font-semibold">{user.name}</span>
+              {justSignedUp
+                ? '. Start your first test below.'
+                : '. Ready for a warm-up?'}
+            </>
+          }
+        />
+      )}
       {!isComplete && (
         <>
           {/* Config bar */}

@@ -18,7 +18,7 @@ export function LoginPage() {
     mutationFn: loginRequest,
     onSuccess: (data) => {
       setAuth(data.token, data.user);
-      navigate('/dashboard', { replace: true });
+      navigate('/', { replace: true, state: { justLoggedIn: true } });
     },
   });
 

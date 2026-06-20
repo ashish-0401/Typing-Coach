@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { SessionsModule } from './sessions/sessions.module';
     UsersModule,
     AuthModule,
     SessionsModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
