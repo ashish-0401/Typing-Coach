@@ -18,5 +18,6 @@ Thumbs.db
 .DS_Store
 *.log
 
-# Keep editor settings local
-.vscode/
+# Editor settings: keep local, but share settings.json (prompt-file discovery)
+.vscode/*
+!.vscode/settings.json
