@@ -47,6 +47,13 @@ Do not introduce other major dependencies without asking.
   Anything implying identity (Dashboard, Session History, Learning Profile, `POST /sessions`) stays
   behind the auth guard. Do NOT create anonymous/guest DB user records. On first signup we may
   optionally migrate the guest's last local session into the new account.
+- **Navigation & landing (decided in Phase 1):** the Typing Test (Practice) is the public home
+  (`/`). After login/signup, land users on Practice and greet them there with a one-time `Toast`
+  (new vs returning is passed via router navigation state); the Dashboard is a deliberate
+  destination, NOT the post-auth landing. Developer-only pages (Style Guide `/style-guide`,
+  Health `/health`) stay OUT of the main nav. Logout lives inside a user menu (avatar + name
+  dropdown), never a prominent nav button. Users have a required `name` (display name) used for
+  greetings ("Welcome aboard" for new signups, "Welcome back" for returning).
 
 ## Code style
 
@@ -61,6 +68,10 @@ Do not introduce other major dependencies without asking.
   style for desktop viewports only. Do NOT add mobile/responsive variants
   unless solving a real desktop sizing issue. The only concession to small screens is a single
   "use a desktop with a physical keyboard" fallback message, never a mobile layout.
+- **Charts (Recharts):** one metric per chart. Do NOT use dual-axis overlays (they imply false
+  relationships); use a metric toggle and put related values in the tooltip for the hovered
+  point. Percentage/accuracy axes are fixed to `[0, 100]`. Set `accessibilityLayer={false}` and
+  keep charts out of the tab order (Recharts adds a focusable `<svg>`).
 - **No em dashes (—), ever.** They read as machine-written and don't feel human. Use periods,
   commas, colons, or parentheses instead, across UI copy, code comments, commit messages,
   docs, and chat responses.
