@@ -51,6 +51,10 @@ Do not introduce other major dependencies without asking.
 - Never hardcode secrets — use environment variables (`.env`, already git-ignored).
 - For UI/UX design, use the `ui-ux-pro-max` skill and default to `--stack react`
   (this project uses React + TailwindCSS) unless told otherwise.
+- **Desktop-first, not mobile.** This is a keyboard-driven app (typing test), so design and
+  style for desktop viewports only. Do NOT add mobile/responsive variants
+  unless solving a real desktop sizing issue. The only concession to small screens is a single
+  "use a desktop with a physical keyboard" fallback message — never a mobile layout.
 
 ## Conventions
 

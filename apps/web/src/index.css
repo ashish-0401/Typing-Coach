@@ -1,1 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
+
+/* Class-based dark mode (toggled on <html>) instead of the OS default. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Semantic tokens — light theme (default). Anti-pattern: never dark-by-default. */
+:root {
+  --background: #ecfeff;
+  --foreground: #164e63;
+  --muted: #4b7686;
+  --card: #ffffff;
+  --border: #cff3f8;
+  --primary: #0891b2;
+  --primary-hover: #0e7490;
+  --primary-foreground: #ffffff;
+  --accent: #059669;
+  --accent-hover: #047857;
+  --accent-foreground: #ffffff;
+  --ring: #0891b2;
+}
+
+/* Dark theme overrides. */
+.dark {
+  --background: #0a1820;
+  --foreground: #e2f4f8;
+  --muted: #8fb3bf;
+  --card: #0f2330;
+  --border: #1d3a47;
+  --primary: #22d3ee;
+  --primary-hover: #67e8f9;
+  --primary-foreground: #052430;
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-foreground: #04211a;
+  --ring: #22d3ee;
+}
+
+/* Expose the semantic tokens to Tailwind so utilities flip with the theme. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ring: var(--ring);
+  --font-sans: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Lora', ui-serif, Georgia, serif;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Respect reduced-motion preferences (flat design = minimal motion anyway). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
