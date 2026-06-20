@@ -57,6 +57,29 @@ Do not introduce other major dependencies without asking.
 - WPM = (characters typed ÷ 5) ÷ minutes elapsed.
 - Accuracy = correct characters ÷ total typed characters, as a percentage.
 
+## Git & branching workflow
+
+Use a lightweight **GitHub Flow**. Never commit straight to `main` — all work lands via
+short-lived feature branches and Pull Requests. Keep branches **few and focused**: roughly
+**one branch per major task / feature slice** (e.g. auth, typing engine, dashboard), not one
+per tiny change.
+
+- **Branch names:** `<type>/<short-kebab-summary>` where `<type>` is one of
+  `feat` · `fix` · `chore` · `docs` · `refactor` · `test` (e.g. `feat/typing-engine`,
+  `fix/wpm-rounding`).
+- **Commits:** use [Conventional Commits](https://www.conventionalcommits.org)
+  (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`). Commit in small, logical steps.
+- **Flow:**
+  1. Branch off the latest `main`: `git switch main && git pull && git switch -c feat/<name>`.
+  2. Implement + commit. Push the branch.
+  3. Open a **PR into `main`** with a short *what & why* description.
+  4. Make sure **CI is green** (lint, typecheck, test, build) and self-review the diff.
+  5. **Squash-merge**, then delete the branch. `git pull` on `main` before the next task.
+- **Granularity:** a roadmap phase may span a few PRs — aim for a PR reviewable in one sitting.
+  Don't let a branch live for weeks; merge or rebase onto `main` regularly to avoid conflicts.
+- **Agent behavior:** I (Copilot) may create branches, commit, and prepare PRs, but I will
+  **ask for confirmation before pushing or merging**, since those affect the remote/shared repo.
+
 ## When suggesting changes
 
 - Explain new concepts briefly — I'm learning, so favor clarity over cleverness.
