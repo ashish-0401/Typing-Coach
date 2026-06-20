@@ -33,7 +33,7 @@ export function AppShell() {
               <span className="leading-tight">
                 <span className="block">WazaKey</span>
                 <span className="block font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
-                  typing by technique
+                  your typing dojo
                 </span>
               </span>
             </Link>
