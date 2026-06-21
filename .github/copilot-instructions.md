@@ -81,28 +81,18 @@ Do not introduce other major dependencies without asking.
 - WPM = (characters typed ÷ 5) ÷ minutes elapsed.
 - Accuracy = correct characters ÷ total typed characters, as a percentage.
 
-## Git & branching workflow
+## Git workflow
 
-Use a lightweight **GitHub Flow**. Never commit straight to `main`. All work lands via
-short-lived feature branches and Pull Requests. Keep branches **few and focused**: roughly
-**one branch per major task / feature slice** (e.g. auth, typing engine, dashboard), not one
-per tiny change.
+Commit directly to `main`. This project no longer uses feature branches or Pull Requests.
 
-- **Branch names:** `<type>/<short-kebab-summary>` where `<type>` is one of
-  `feat` · `fix` · `chore` · `docs` · `refactor` · `test` (e.g. `feat/typing-test`,
-  `fix/wpm-rounding`).
 - **Commits:** use [Conventional Commits](https://www.conventionalcommits.org)
-  (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`). Commit in small, logical steps.
-- **Flow:**
-  1. Branch off the latest `main`: `git switch main && git pull && git switch -c feat/<name>`.
-  2. Implement + commit. Push the branch.
-  3. Open a **PR into `main`** with a short *what & why* description.
-  4. Make sure **CI is green** (lint, typecheck, test, build) and self-review the diff.
-  5. **Squash-merge**, then delete the branch. `git pull` on `main` before the next task.
-- **Granularity:** a roadmap phase may span a few PRs, aim for a PR reviewable in one sitting.
-  Don't let a branch live for weeks; merge or rebase onto `main` regularly to avoid conflicts.
-- **Agent behavior:** I (Copilot) may create branches, commit, and prepare PRs, but I will
-  **ask for confirmation before pushing or merging**, since those affect the remote/shared repo.
+  (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`). Commit in small, logical steps,
+  each one buildable.
+- **Flow:** `git pull` → implement → commit in logical steps → `git push origin main`.
+  Run lint, typecheck, test and build locally before pushing.
+- **Agent behavior:** I (Copilot) may commit and push to `main` directly, per the owner's
+  instruction. I still avoid force-pushes, history rewrites and other destructive remote
+  actions without explicit confirmation.
 
 ## When suggesting changes
 
