@@ -41,13 +41,16 @@ const MAX_STYLE = 160;
 
 const SYSTEM_PROMPT = [
   "You are an expert typing coach analyzing a user's recent performance.",
-  'Respond with ONLY a single JSON object (no markdown, no extra text) using these keys:',
+  'Respond with ONLY a single valid JSON object: no markdown, no commentary, and every',
+  'string value wrapped in double quotes. Use exactly these keys:',
   '- "summary": one short sentence naming the main thing holding the user back.',
   '- "reasoning": 2 to 3 sentences explaining WHY, citing the data provided.',
   '- "patterns": array of 2 to 5 short lowercase tags (e.g. "ie/ei spelling", "double letters").',
   '- "strengths": array of 1 to 3 short strengths.',
   '- "learningStyle": one short phrase on how they should practice next.',
   'Base every claim only on the data provided. Do not invent numbers or words.',
+  'Return exactly this shape, with all string values quoted:',
+  '{"summary":"You lose time on long words.","reasoning":"Accuracy dips on words over 8 letters such as receive and believe, while short words stay clean.","patterns":["long words","ie/ei spelling"],"strengths":["steady rhythm"],"learningStyle":"short drills on your weak words"}',
 ].join('\n');
 
 /** Build the system + user prompt for a diagnosis from the gathered context. */
