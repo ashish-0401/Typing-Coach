@@ -84,6 +84,24 @@ export async function fetchMe(): Promise<AuthUser> {
   return (await response.json()) as AuthUser;
 }
 
+export interface UpdateProfileInput {
+  name: string;
+}
+
+export async function updateProfile(
+  body: UpdateProfileInput,
+): Promise<AuthUser> {
+  const response = await fetch(`${API_URL}/users/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as AuthUser;
+}
+
 function authHeaders(): Record<string, string> {
   const token = useAuth.getState().token;
   return token ? { Authorization: `Bearer ${token}` } : {};
