@@ -105,7 +105,14 @@ export interface TypingSession {
   mistakes: string[];
 }
 
-export async function createSession(body: CreateSessionInput): Promise<TypingSession> {
+export interface CreateSessionResponse {
+  session: TypingSession;
+  newMilestones: Milestone[];
+}
+
+export async function createSession(
+  body: CreateSessionInput,
+): Promise<CreateSessionResponse> {
   const response = await fetch(`${API_URL}/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
@@ -114,7 +121,7 @@ export async function createSession(body: CreateSessionInput): Promise<TypingSes
   if (!response.ok) {
     throw new Error(await parseError(response));
   }
-  return (await response.json()) as TypingSession;
+  return (await response.json()) as CreateSessionResponse;
 }
 
 export async function fetchSessions(): Promise<TypingSession[]> {

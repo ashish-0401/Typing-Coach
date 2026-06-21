@@ -12,7 +12,8 @@ import {
   YAxis,
 } from 'recharts';
 import { useAuth } from '../lib/auth';
-import { createSession } from '../lib/api';
+import { createSession, type Milestone } from '../lib/api';
+import { milestoneLabel, pickTopMilestone } from '../lib/milestones';
 import {
   calculateAccuracy,
   calculateWpm,
@@ -73,10 +74,16 @@ export function TypingTestPage() {
   const justLoggedIn = navState?.justLoggedIn ?? false;
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const queryClient = useQueryClient();
+  const [milestoneToast, setMilestoneToast] = useState<Milestone | null>(null);
   const saveMutation = useMutation({
     mutationFn: createSession,
-    onSuccess: () => {
+    onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      void queryClient.invalidateQueries({ queryKey: ['learning-profile'] });
+      const top = pickTopMilestone(data.newMilestones);
+      if (top) {
+        setMilestoneToast(top);
+      }
     },
   });
 
@@ -409,6 +416,17 @@ export function TypingTestPage() {
               {justSignedUp
                 ? '. Start your first test below.'
                 : '. Ready for a warm-up?'}
+            </>
+          }
+        />
+      )}
+      {milestoneToast && (
+        <Toast
+          onClose={() => setMilestoneToast(null)}
+          message={
+            <>
+              New milestone:{' '}
+              <span className="font-semibold">{milestoneLabel(milestoneToast)}</span>
             </>
           }
         />

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchLearningProfile } from '../lib/api';
+import { milestoneLabel } from '../lib/milestones';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
@@ -33,6 +34,33 @@ function InfoIcon() {
       <path d="M12 8h.01" />
     </svg>
   );
+}
+
+function AwardIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="6" />
+      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+    </svg>
+  );
+}
+
+function formatMilestoneDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 export function LearningProfilePage() {
@@ -148,12 +176,33 @@ export function LearningProfilePage() {
         )}
       </Card>
 
-      {/* Milestones (placeholder until the milestones step) */}
+      {/* Milestones */}
       <Card className="mt-6">
         <h2 className="font-heading text-lg font-semibold text-foreground">Milestones</h2>
-        <p className="mt-1 text-sm text-muted">
-          Achievements like personal bests and streaks will appear here as you reach them.
-        </p>
+        {profile.milestones.length === 0 ? (
+          <p className="mt-1 text-sm text-muted">
+            Achievements like personal bests and streaks will appear here as you reach them.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {profile.milestones.map((milestone, index) => (
+              <li
+                key={`${milestone.type}-${milestone.value}-${index}`}
+                className="flex items-center gap-3"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+                  <AwardIcon />
+                </span>
+                <div>
+                  <p className="text-sm text-foreground">{milestoneLabel(milestone)}</p>
+                  <p className="font-mono text-xs text-muted">
+                    {formatMilestoneDate(milestone.achievedAt)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </>
   );
