@@ -75,7 +75,10 @@ export function detectNewMilestones(
 
   // A new personal-best WPM, only once there is a prior best to beat (so the
   // very first session is covered by the session-count / threshold milestones).
-  if (signals.previousBestWpm > 0 && signals.bestWpm > signals.previousBestWpm) {
+  if (
+    signals.previousBestWpm > 0 &&
+    signals.bestWpm > signals.previousBestWpm
+  ) {
     award('best_wpm', signals.bestWpm);
   }
 

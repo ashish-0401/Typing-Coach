@@ -20,7 +20,12 @@ function signals(overrides: Partial<MilestoneSignals> = {}): MilestoneSignals {
 describe('detectNewMilestones', () => {
   it('awards first-session and crossed thresholds, not unmet ones', () => {
     const result = detectNewMilestones(
-      signals({ bestWpm: 50, previousBestWpm: 0, bestAccuracy: 90, totalSessions: 1 }),
+      signals({
+        bestWpm: 50,
+        previousBestWpm: 0,
+        bestAccuracy: 90,
+        totalSessions: 1,
+      }),
       NOW,
     );
 
@@ -103,6 +108,8 @@ describe('detectNewMilestones', () => {
       NOW,
     );
 
-    expect(result).toEqual([{ type: 'session_count', value: 10, achievedAt: NOW }]);
+    expect(result).toEqual([
+      { type: 'session_count', value: 10, achievedAt: NOW },
+    ]);
   });
 });
