@@ -201,3 +201,34 @@ export async function fetchLearningProfile(): Promise<LearningProfile> {
   return (await response.json()) as LearningProfile;
 }
 
+export interface Diagnosis {
+  _id: string;
+  summary: string;
+  reasoning: string;
+  patterns: string[];
+  basedOnSessions: number;
+  aiModel: string;
+  createdAt: string;
+}
+
+export async function fetchLatestDiagnosis(): Promise<Diagnosis | null> {
+  const response = await fetch(`${API_URL}/diagnoses/latest`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as Diagnosis | null;
+}
+
+export async function runDiagnosis(): Promise<Diagnosis> {
+  const response = await fetch(`${API_URL}/diagnoses`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as Diagnosis;
+}
+
