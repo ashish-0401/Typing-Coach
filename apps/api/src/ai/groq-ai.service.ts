@@ -18,8 +18,9 @@ export class GroqAiService extends AiService {
   constructor(config: ConfigService) {
     super();
     // Read config at construction (no network call), so the app boots without a key.
-    this.apiKey = config.get<string>('GROQ_API_KEY');
-    this.model = config.get<string>('GROQ_MODEL') ?? DEFAULT_MODEL;
+    // Use ||, not ??, so an empty GROQ_MODEL= in .env still falls back to the default.
+    this.apiKey = config.get<string>('GROQ_API_KEY')?.trim() || undefined;
+    this.model = config.get<string>('GROQ_MODEL')?.trim() || DEFAULT_MODEL;
   }
 
   async complete(request: AiCompletionRequest): Promise<string> {

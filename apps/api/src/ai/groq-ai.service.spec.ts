@@ -61,6 +61,29 @@ describe('GroqAiService', () => {
     ]);
   });
 
+  it('falls back to the default model when GROQ_MODEL is empty', async () => {
+    let capturedBody = '';
+    const fetchMock = jest
+      .fn()
+      .mockImplementation((_url: string, init: RequestInit) => {
+        capturedBody = init.body as string;
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({ choices: [{ message: { content: 'ok' } }] }),
+        } as unknown as Response);
+      });
+    global.fetch = fetchMock;
+
+    const service = new GroqAiService(
+      configWith({ GROQ_API_KEY: 'k', GROQ_MODEL: '' }),
+    );
+    await service.complete({ prompt: 'hi' });
+
+    const body = JSON.parse(capturedBody) as { model: string };
+    expect(body.model).toBe('llama-3.3-70b-versatile');
+  });
+
   it('throws AiError on a non-OK response', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
