@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { LearningProfileModule } from './learning-profile/learning-profile.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     AuthModule,
     SessionsModule,
     AnalyticsModule,
+    LearningProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

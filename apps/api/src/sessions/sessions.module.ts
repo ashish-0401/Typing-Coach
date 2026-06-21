@@ -7,6 +7,7 @@ import {
 } from './schemas/typing-session.schema';
 import { SessionsService } from './sessions.service';
 import { SessionsController } from './sessions.controller';
+import { LearningProfileModule } from '../learning-profile/learning-profile.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SessionsController } from './sessions.controller';
       { name: TypingSession.name, schema: TypingSessionSchema },
     ]),
     AuthModule,
+    LearningProfileModule,
   ],
   controllers: [SessionsController],
   providers: [SessionsService],
