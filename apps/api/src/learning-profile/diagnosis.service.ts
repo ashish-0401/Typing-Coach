@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -24,6 +25,8 @@ const RECENT_SESSION_LIMIT = 20;
 
 @Injectable()
 export class DiagnosisService {
+  private readonly logger = new Logger(DiagnosisService.name);
+
   constructor(
     @InjectModel(Diagnosis.name)
     private readonly diagnosisModel: Model<DiagnosisDocument>,
@@ -71,7 +74,10 @@ export class DiagnosisService {
     let raw: string;
     try {
       raw = await this.ai.complete({ system, prompt, json: true });
-    } catch {
+    } catch (error) {
+      this.logger.warn(
+        `AI completion failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new ServiceUnavailableException(
         'The AI coach is unavailable right now. Please try again in a moment.',
       );
@@ -80,7 +86,10 @@ export class DiagnosisService {
     let parsed: ParsedDiagnosis;
     try {
       parsed = parseDiagnosisResponse(raw);
-    } catch {
+    } catch (error) {
+      this.logger.warn(
+        `AI response could not be parsed: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new ServiceUnavailableException(
         'The AI returned an unexpected response. Please try again.',
       );
