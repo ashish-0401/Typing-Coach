@@ -10,6 +10,15 @@ import {
   LearningProfileDocument,
 } from './schemas/learning-profile.schema';
 import { computeProfileMetrics } from './profile-metrics';
+import {
+  detectNewMilestones,
+  type DetectedMilestone,
+} from './milestone-detection';
+
+export interface RecomputeResult {
+  profile: LearningProfileDocument;
+  newMilestones: DetectedMilestone[];
+}
 
 @Injectable()
 export class LearningProfileService {
@@ -21,11 +30,12 @@ export class LearningProfileService {
   ) {}
 
   /**
-   * Recompute the user's profile from their typing sessions and upsert it.
-   * Only derived fields are written, so AI-owned fields (strengths,
-   * learningStyle, milestones) survive untouched once they exist (Phase 3+).
+   * Recompute the user's profile from their typing sessions, detect any newly
+   * earned milestones, and upsert it. AI-owned fields (strengths, learningStyle)
+   * are left untouched so Phase 3+ can fill them. Returns the profile plus the
+   * milestones earned by the latest session (for surfacing on session save).
    */
-  async recompute(userId: string): Promise<LearningProfileDocument> {
+  async recompute(userId: string): Promise<RecomputeResult> {
     // Newest-first, matching the ordering computeProfileMetrics expects.
     const sessions = await this.sessionModel
       .find({ userId })
@@ -40,10 +50,35 @@ export class LearningProfileService {
       })),
     );
 
+    // The existing profile gives us the prior best and already-earned milestones.
+    const existing = await this.profileModel.findOne({ userId }).exec();
+    const existingMilestones = existing?.milestones ?? [];
+    const bestAccuracy = sessions.reduce(
+      (max, session) => Math.max(max, session.accuracy),
+      0,
+    );
+
+    const newMilestones = detectNewMilestones({
+      bestWpm: metrics.bestWpm,
+      previousBestWpm: existing?.bestWpm ?? 0,
+      bestAccuracy,
+      totalSessions: metrics.totalSessions,
+      existingMilestones,
+    });
+
+    // Prepend freshly earned milestones so the list stays newest-first.
+    const milestones = [...newMilestones, ...existingMilestones].map(
+      (milestone) => ({
+        type: milestone.type,
+        value: milestone.value,
+        achievedAt: milestone.achievedAt,
+      }),
+    );
+
     const profile = await this.profileModel
       .findOneAndUpdate(
         { userId },
-        { $set: { userId, ...metrics } },
+        { $set: { userId, ...metrics, milestones } },
         { new: true, upsert: true, setDefaultsOnInsert: true },
       )
       .exec();
@@ -55,12 +90,16 @@ export class LearningProfileService {
       );
     }
 
-    return profile;
+    return { profile, newMilestones };
   }
 
   /** Return the user's profile, building it on demand if it does not exist yet. */
   async getByUser(userId: string): Promise<LearningProfileDocument> {
     const existing = await this.profileModel.findOne({ userId }).exec();
-    return existing ?? this.recompute(userId);
+    if (existing) {
+      return existing;
+    }
+    const { profile } = await this.recompute(userId);
+    return profile;
   }
 }

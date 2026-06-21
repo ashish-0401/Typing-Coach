@@ -1,7 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type LearningProfileDocument = HydratedDocument<LearningProfile>;
+
+/** A single achievement awarded to a user (e.g. a WPM threshold or a streak). */
+@Schema({ _id: false })
+export class Milestone {
+  @Prop({ required: true })
+  type!: string;
+
+  @Prop({ required: true })
+  value!: number;
+
+  @Prop({ required: true, default: () => new Date() })
+  achievedAt!: Date;
+}
+
+export const MilestoneSchema = SchemaFactory.createForClass(Milestone);
 
 /**
  * One permanent profile per user. Numeric stats and weaknesses are derived from
@@ -36,9 +51,8 @@ export class LearningProfile {
   @Prop({ type: [String], default: [] })
   strengths!: string[];
 
-  // Shape is defined in a later step, kept empty for now.
-  @Prop({ type: [MongooseSchema.Types.Mixed], default: [] })
-  milestones!: Record<string, unknown>[];
+  @Prop({ type: [MilestoneSchema], default: [] })
+  milestones!: Milestone[];
 
   // Filled by the AI later (Phase 3+).
   @Prop({ type: String, default: null })
