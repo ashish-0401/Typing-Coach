@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { SessionsService } from './sessions.service';
+import { SessionsService, CreateSessionResult } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { TypingSessionDocument } from './schemas/typing-session.schema';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,7 +15,7 @@ export class SessionsController {
   create(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreateSessionDto,
-  ): Promise<TypingSessionDocument> {
+  ): Promise<CreateSessionResult> {
     return this.sessionsService.create(user.sub, dto);
   }
 
