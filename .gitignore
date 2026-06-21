@@ -22,3 +22,6 @@ Thumbs.db
 # Editor settings: keep local, but share settings.json (prompt-file discovery)
 .vscode/*
 !.vscode/settings.json
+
+# Local corporate CA bundle for Node TLS (machine-specific)
+apps/api/.local-ca.pem
