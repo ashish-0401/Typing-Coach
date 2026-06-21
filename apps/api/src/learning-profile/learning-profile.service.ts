@@ -102,4 +102,25 @@ export class LearningProfileService {
     const { profile } = await this.recompute(userId);
     return profile;
   }
+
+  /**
+   * Write the AI-owned seams (strengths, learningStyle) onto the profile without
+   * touching the derived stats or milestones. Called after an AI diagnosis.
+   */
+  async applyAiInsights(
+    userId: string,
+    insights: { strengths: string[]; learningStyle: string | null },
+  ): Promise<void> {
+    await this.profileModel
+      .updateOne(
+        { userId },
+        {
+          $set: {
+            strengths: insights.strengths,
+            learningStyle: insights.learningStyle,
+          },
+        },
+      )
+      .exec();
+  }
 }
