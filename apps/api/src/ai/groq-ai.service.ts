@@ -13,7 +13,7 @@ interface GroqResponse {
 @Injectable()
 export class GroqAiService extends AiService {
   private readonly apiKey: string | undefined;
-  private readonly model: string;
+  readonly model: string;
 
   constructor(config: ConfigService) {
     super();

@@ -13,6 +13,9 @@ export interface AiCompletionRequest {
  * touches a single line and no feature code.
  */
 export abstract class AiService {
+  /** Identifier of the underlying model, for auditing and storage. */
+  abstract readonly model: string;
+
   /**
    * Run a single completion and return the raw model text. When `request.json`
    * is true the text is a JSON object string for the caller to parse and validate.
