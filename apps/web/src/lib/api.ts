@@ -145,3 +145,34 @@ export async function fetchAnalyticsSummary(): Promise<AnalyticsSummary> {
   return (await response.json()) as AnalyticsSummary;
 }
 
+export interface Milestone {
+  type: string;
+  value: number;
+  achievedAt: string;
+}
+
+export interface LearningProfile {
+  userId: string;
+  currentWpm: number;
+  bestWpm: number;
+  averageWpm: number;
+  averageAccuracy: number;
+  totalSessions: number;
+  primaryWeaknesses: string[];
+  strengths: string[];
+  milestones: Milestone[];
+  learningStyle: string | null;
+  plateauDetected: boolean;
+  updatedAt: string;
+}
+
+export async function fetchLearningProfile(): Promise<LearningProfile> {
+  const response = await fetch(`${API_URL}/learning-profile`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as LearningProfile;
+}
+
