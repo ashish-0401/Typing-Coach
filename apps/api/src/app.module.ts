@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { LearningProfileModule } from './learning-profile/learning-profile.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { LearningProfileModule } from './learning-profile/learning-profile.modul
     SessionsModule,
     AnalyticsModule,
     LearningProfileModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
