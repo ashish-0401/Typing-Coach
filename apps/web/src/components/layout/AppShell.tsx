@@ -51,6 +51,11 @@ export function AppShell() {
                                     History
                                 </NavLink>
                             )}
+                            {user && (
+                                <NavLink to="/profile" className={navLinkClass}>
+                                    Profile
+                                </NavLink>
+                            )}
                         </nav>
                     </div>
                     <div className="flex items-center gap-3">

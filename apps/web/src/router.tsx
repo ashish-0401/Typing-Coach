@@ -8,6 +8,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TypingTestPage } from './pages/TypingTestPage';
 import { SessionHistoryPage } from './pages/SessionHistoryPage';
+import { LearningProfilePage } from './pages/LearningProfilePage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -29,6 +30,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <SessionHistoryPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/profile',
+        element: (
+          <RequireAuth>
+            <LearningProfilePage />
           </RequireAuth>
         ),
       },
