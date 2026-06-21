@@ -20,4 +20,10 @@ export class UsersService {
   findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).exec();
   }
+
+  updateName(id: string, name: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { name }, { new: true })
+      .exec();
+  }
 }
