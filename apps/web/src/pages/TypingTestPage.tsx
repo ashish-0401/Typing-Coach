@@ -69,7 +69,12 @@ function buildTarget(
 export function TypingTestPage() {
   const user = useAuth((s) => s.user);
   const location = useLocation();
-  const navState = location.state as { justSignedUp?: boolean; justLoggedIn?: boolean } | null;
+  const navState = location.state as {
+    justSignedUp?: boolean;
+    justLoggedIn?: boolean;
+    exerciseText?: string;
+    exerciseTitle?: string;
+  } | null;
   const justSignedUp = navState?.justSignedUp ?? false;
   const justLoggedIn = navState?.justLoggedIn ?? false;
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
@@ -105,7 +110,21 @@ export function TypingTestPage() {
   const setNumbers = useTypingConfig((s) => s.setNumbers);
 
   // Session
+  // A drill seeds the first test when arriving from the Drills page; starting a
+  // new test or changing config falls back to normal generated words.
+  const [drill, setDrill] = useState<{ text: string; title: string } | null>(
+    () =>
+      navState?.exerciseText
+        ? {
+            text: navState.exerciseText,
+            title: navState.exerciseTitle ?? 'Drill',
+          }
+        : null,
+  );
   const [target, setTarget] = useState<string>(() => {
+    if (navState?.exerciseText) {
+      return navState.exerciseText;
+    }
     const c = useTypingConfig.getState();
     return buildTarget(c.mode, c.timeSec, c.wordCount, c.punctuation, c.numbers);
   });
@@ -319,6 +338,7 @@ export function TypingTestPage() {
   }, []);
 
   const nextTest = useCallback(() => {
+    setDrill(null);
     startSession(buildTarget(mode, timeSec, wordCount, punctuation, numbers), false);
   }, [startSession, mode, timeSec, wordCount, punctuation, numbers]);
 
@@ -327,11 +347,13 @@ export function TypingTestPage() {
   }, [startSession, target]);
 
   function chooseMode(nextMode: Mode) {
+    setDrill(null);
     setMode(nextMode);
     startSession(buildTarget(nextMode, timeSec, wordCount, punctuation, numbers), false);
   }
 
   function chooseAmount(value: number) {
+    setDrill(null);
     if (mode === 'time') {
       setTimeSec(value);
       startSession(buildTarget('time', value, wordCount, punctuation, numbers), false);
@@ -342,12 +364,14 @@ export function TypingTestPage() {
   }
 
   function togglePunctuation() {
+    setDrill(null);
     const next = !punctuation;
     setPunctuation(next);
     startSession(buildTarget(mode, timeSec, wordCount, next, numbers), false);
   }
 
   function toggleNumbers() {
+    setDrill(null);
     const next = !numbers;
     setNumbers(next);
     startSession(buildTarget(mode, timeSec, wordCount, punctuation, next), false);
@@ -433,6 +457,13 @@ export function TypingTestPage() {
       )}
       {!isComplete && (
         <>
+          {drill && (
+            <div className="mb-6 flex justify-center">
+              <span className="inline-flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-1.5 font-mono text-sm text-accent">
+                Drill: <span className="font-semibold">{drill.title}</span>
+              </span>
+            </div>
+          )}
           {/* Config bar */}
           <div className="mb-12 flex justify-center">
             <div className="flex items-center gap-1 rounded-xl border border-border bg-card/70 px-2 py-1.5 font-mono text-sm shadow-md backdrop-blur-sm">

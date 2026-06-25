@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { to: '/dashboard', label: 'Dashboard', authed: true },
   { to: '/history', label: 'History', authed: true },
   { to: '/profile', label: 'Profile', authed: true },
+  { to: '/exercises', label: 'Drills', authed: true },
   { to: '/coach', label: 'Coach', authed: true },
 ];
 

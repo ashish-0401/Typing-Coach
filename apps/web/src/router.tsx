@@ -11,6 +11,7 @@ import { LandingPage } from './pages/LandingPage';
 import { SessionHistoryPage } from './pages/SessionHistoryPage';
 import { LearningProfilePage } from './pages/LearningProfilePage';
 import { CoachPage } from './pages/CoachPage';
+import { ExercisesPage } from './pages/ExercisesPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 export const router = createBrowserRouter([
@@ -50,6 +51,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <CoachPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/exercises',
+        element: (
+          <RequireAuth>
+            <ExercisesPage />
           </RequireAuth>
         ),
       },

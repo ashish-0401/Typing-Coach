@@ -260,3 +260,45 @@ export async function sendCoachMessage(text: string): Promise<CoachMessage> {
   return (await response.json()) as CoachMessage;
 }
 
+export type ExerciseDifficulty = 'easy' | 'medium' | 'hard';
+
+export interface GeneratedExercise {
+  _id: string;
+  weakness: string;
+  difficulty: ExerciseDifficulty;
+  title: string;
+  text: string;
+  targetWords: string[];
+  aiModel: string;
+  createdAt: string;
+}
+
+export interface GenerateExerciseInput {
+  weakness?: string;
+  difficulty?: ExerciseDifficulty;
+}
+
+export async function fetchExercises(): Promise<GeneratedExercise[]> {
+  const response = await fetch(`${API_URL}/exercises`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as GeneratedExercise[];
+}
+
+export async function generateExercise(
+  body: GenerateExerciseInput,
+): Promise<GeneratedExercise> {
+  const response = await fetch(`${API_URL}/exercises`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as GeneratedExercise;
+}
+
