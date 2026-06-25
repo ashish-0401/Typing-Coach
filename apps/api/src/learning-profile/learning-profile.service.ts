@@ -36,9 +36,10 @@ export class LearningProfileService {
    * milestones earned by the latest session (for surfacing on session save).
    */
   async recompute(userId: string): Promise<RecomputeResult> {
-    // Newest-first, matching the ordering computeProfileMetrics expects.
+    // Exclude drills: the permanent profile is a benchmark of real tests, not
+    // practice on hard generated passages.
     const sessions = await this.sessionModel
-      .find({ userId })
+      .find({ userId, tags: { $ne: 'drill' } })
       .sort({ date: -1 })
       .exec();
 

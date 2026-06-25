@@ -1,7 +1,10 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { SessionsService, CreateSessionResult } from './sessions.service';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  SessionsService,
+  CreateSessionResult,
+  PaginatedSessions,
+} from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
-import { TypingSessionDocument } from './schemas/typing-session.schema';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/types/jwt-payload';
@@ -20,7 +23,16 @@ export class SessionsController {
   }
 
   @Get()
-  list(@CurrentUser() user: JwtPayload): Promise<TypingSessionDocument[]> {
-    return this.sessionsService.findByUser(user.sub);
+  list(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('tag') tag?: string,
+  ): Promise<PaginatedSessions> {
+    return this.sessionsService.findPage(user.sub, {
+      page: Number(page) || 1,
+      limit: Number(limit) || 20,
+      tag: tag || undefined,
+    });
   }
 }

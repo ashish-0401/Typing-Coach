@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   Logger,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -132,5 +133,18 @@ export class ExercisesService {
       return Promise.resolve(null);
     }
     return this.exerciseModel.findOne({ _id: id, userId }).exec();
+  }
+
+  /** Permanently delete one of the user's drills. */
+  async remove(userId: string, id: string): Promise<void> {
+    if (!isValidObjectId(id)) {
+      throw new NotFoundException('Exercise not found');
+    }
+    const result = await this.exerciseModel
+      .deleteOne({ _id: id, userId })
+      .exec();
+    if (result.deletedCount === 0) {
+      throw new NotFoundException('Exercise not found');
+    }
   }
 }

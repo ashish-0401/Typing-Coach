@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { Model } from 'mongoose';
@@ -123,5 +124,52 @@ describe('ExercisesService.generate', () => {
       ServiceUnavailableException,
     );
     expect(mocks.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('ExercisesService.remove', () => {
+  function makeWithDelete(deletedCount: number): {
+    service: ExercisesService;
+    deleteOne: jest.Mock;
+  } {
+    const deleteOne = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn().mockResolvedValue({ deletedCount }) });
+    const exerciseModel = {
+      deleteOne,
+    } as unknown as Model<GeneratedExerciseDocument>;
+    const service = new ExercisesService(
+      exerciseModel,
+      {} as unknown as LearningProfileService,
+      {} as unknown as DiagnosisService,
+      { model: 'test-model' } as unknown as AiService,
+    );
+    return { service, deleteOne };
+  }
+
+  it('throws NotFoundException for an invalid id without querying', async () => {
+    const { service, deleteOne } = makeWithDelete(0);
+    await expect(service.remove('u1', 'not-an-id')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    expect(deleteOne).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundException when nothing was deleted', async () => {
+    const { service } = makeWithDelete(0);
+    await expect(
+      service.remove('u1', '507f1f77bcf86cd799439011'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('deletes a drill scoped to the user', async () => {
+    const { service, deleteOne } = makeWithDelete(1);
+    await expect(
+      service.remove('u1', '507f1f77bcf86cd799439011'),
+    ).resolves.toBeUndefined();
+    expect(deleteOne).toHaveBeenCalledWith({
+      _id: '507f1f77bcf86cd799439011',
+      userId: 'u1',
+    });
   });
 });

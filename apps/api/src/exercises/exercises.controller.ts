@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -45,5 +47,14 @@ export class ExercisesController {
       throw new NotFoundException('Exercise not found');
     }
     return exercise;
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  remove(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ): Promise<void> {
+    return this.exercisesService.remove(user.sub, id);
   }
 }
