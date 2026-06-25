@@ -435,7 +435,7 @@ export function TypingTestPage() {
         <>
           {/* Config bar */}
           <div className="mb-12 flex justify-center">
-            <div className="flex items-center gap-1 rounded-lg bg-card px-2 py-1.5 font-mono text-sm">
+            <div className="flex items-center gap-1 rounded-xl border border-border bg-card/70 px-2 py-1.5 font-mono text-sm shadow-md backdrop-blur-sm">
               <TabButton active={mode === 'time'} onClick={() => chooseMode('time')}>
                 time
               </TabButton>
@@ -549,7 +549,7 @@ export function TypingTestPage() {
 
               {!isFocused && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <span className="rounded-lg bg-card/80 px-4 py-2 text-sm font-medium text-muted backdrop-blur">
+                  <span className="rounded-xl border border-border bg-elevated/90 px-4 py-2 text-sm font-medium text-foreground shadow-lg backdrop-blur">
                     Click or press any key to focus
                   </span>
                 </div>
@@ -618,8 +618,10 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={
-        'rounded-md px-3 py-1 transition-colors duration-200 cursor-pointer ' +
-        (active ? 'text-accent' : 'text-muted hover:text-foreground')
+        'rounded-lg px-3 py-1.5 transition-colors duration-200 cursor-pointer ' +
+        (active
+          ? 'bg-elevated text-accent shadow-sm'
+          : 'text-muted hover:text-foreground')
       }
     >
       {children}
@@ -642,7 +644,9 @@ function ResultStat({
       <span
         className={
           'font-mono font-semibold tabular-nums ' +
-          (emphasis ? 'text-6xl text-accent' : 'text-3xl text-foreground')
+          (emphasis
+            ? 'bg-gradient-to-br from-accent to-primary bg-clip-text text-6xl text-transparent'
+            : 'text-3xl text-foreground')
         }
       >
         {value}
@@ -670,7 +674,7 @@ function Results({
   }));
 
   return (
-    <div className="py-4">
+    <div className="py-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
       <div className="flex flex-wrap items-end gap-12">
         <ResultStat label="wpm" value={String(Math.round(result.wpm))} emphasis />
         <ResultStat label="accuracy" value={`${result.accuracy.toFixed(0)}%`} emphasis />
@@ -788,7 +792,7 @@ function Results({
             {result.mistypedWords.map((word) => (
               <span
                 key={word}
-                className="rounded-md bg-error/10 px-2 py-1 font-mono text-sm text-error"
+                className="rounded-full border border-error/20 bg-error/10 px-3 py-1 font-mono text-xs text-error"
               >
                 {word}
               </span>
@@ -804,7 +808,7 @@ function Results({
           onClick={onNext}
           title="Next test (new words)"
           aria-label="Next test"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-card text-muted transition-colors duration-200 hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-elevated text-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -825,7 +829,7 @@ function Results({
           onClick={onRepeat}
           title="Repeat test (same words)"
           aria-label="Repeat test"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-card text-muted transition-colors duration-200 hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-elevated text-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

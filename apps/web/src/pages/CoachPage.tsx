@@ -1,11 +1,14 @@
 import type { FormEvent, KeyboardEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Send, Sparkles } from 'lucide-react';
 import { fetchCoachMessages, sendCoachMessage } from '../lib/api';
 import type { CoachMessage } from '../lib/api';
+import { cn } from '@/lib/utils';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
+import { Textarea } from '../components/ui/Textarea';
 
 const SUGGESTIONS = [
   'How am I doing?',
@@ -18,16 +21,40 @@ const MAX_MESSAGE = 1000;
 function Bubble({ message }: { message: CoachMessage }) {
   const isUser = message.role === 'user';
   return (
-    <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
+    <div className={cn('flex gap-3', isUser ? 'justify-end' : 'justify-start')}>
+      {!isUser && (
+        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-accent ring-1 ring-primary/15">
+          <Sparkles className="size-3.5" />
+        </span>
+      )}
       <div
-        className={
-          'max-w-[80%] whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm ' +
-          (isUser
-            ? 'bg-accent/15 text-foreground'
-            : 'border border-border bg-elevated text-foreground')
-        }
+        className={cn(
+          'max-w-[78%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
+          isUser
+            ? 'bg-primary text-primary-foreground'
+            : 'border border-border bg-elevated text-foreground',
+        )}
       >
         {message.content}
+      </div>
+    </div>
+  );
+}
+
+function TypingDots() {
+  return (
+    <div className="flex gap-3">
+      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-accent ring-1 ring-primary/15">
+        <Sparkles className="size-3.5" />
+      </span>
+      <div className="flex items-center gap-1 rounded-2xl border border-border bg-elevated px-4 py-3.5">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="size-1.5 animate-bounce rounded-full bg-muted"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -67,13 +94,11 @@ export function CoachPage() {
       setPending(null);
     },
     onError: (_err, sentText) => {
-      // Keep what they typed so they can retry.
       setInput(sentText);
       setPending(null);
     },
   });
 
-  // Keep the thread scrolled to the newest message.
   useEffect(() => {
     const el = threadRef.current;
     if (el) {
@@ -122,15 +147,18 @@ export function CoachPage() {
       <Card className="flex flex-col p-0">
         <div
           ref={threadRef}
-          className="max-h-[58vh] min-h-[40vh] space-y-4 overflow-y-auto px-6 py-5"
+          className="max-h-[58vh] min-h-[42vh] space-y-4 overflow-y-auto px-6 py-5"
         >
           {isPending ? (
-            <p className="text-muted">Loading your conversation…</p>
+            <p className="text-muted">Loading your conversation...</p>
           ) : isError ? (
             <p className="text-error">{error.message}</p>
           ) : thread.length === 0 ? (
-            <div className="py-8 text-center">
-              <h2 className="font-heading text-lg font-semibold text-foreground">
+            <div className="flex flex-col items-center py-10 text-center">
+              <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-accent ring-1 ring-primary/15">
+                <Sparkles className="size-6" />
+              </span>
+              <h2 className="mt-4 font-heading text-lg font-semibold text-foreground">
                 Your typing coach
               </h2>
               <p className="mt-1 text-sm text-muted">
@@ -142,7 +170,7 @@ export function CoachPage() {
                     key={question}
                     type="button"
                     onClick={() => pickSuggestion(question)}
-                    className="cursor-pointer rounded-full border border-border bg-elevated px-3 py-1.5 text-sm text-muted transition-colors duration-200 hover:text-foreground"
+                    className="cursor-pointer rounded-full border border-border bg-elevated px-3.5 py-1.5 text-sm text-muted transition-colors duration-200 hover:border-primary/40 hover:text-foreground"
                   >
                     {question}
                   </button>
@@ -150,18 +178,10 @@ export function CoachPage() {
               </div>
             </div>
           ) : (
-            thread.map((message, index) => (
-              <Bubble key={index} message={message} />
-            ))
+            thread.map((message, index) => <Bubble key={index} message={message} />)
           )}
 
-          {mutation.isPending && (
-            <div className="flex justify-start">
-              <div className="rounded-xl border border-border bg-elevated px-4 py-2.5 text-sm text-muted">
-                Coach is typing…
-              </div>
-            </div>
-          )}
+          {mutation.isPending && <TypingDots />}
         </div>
 
         <div className="border-t border-border px-6 py-4">
@@ -169,19 +189,24 @@ export function CoachPage() {
             <p className="mb-2 text-sm text-error">{mutation.error.message}</p>
           )}
           <form onSubmit={submit} className="flex items-end gap-3">
-            <textarea
+            <Textarea
               ref={textareaRef}
               value={input}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
               rows={2}
               maxLength={MAX_MESSAGE}
-              placeholder="Ask your coach…"
+              placeholder="Ask your coach..."
               aria-label="Message your coach"
-              className="flex-1 resize-none rounded-lg border border-border bg-card px-4 py-2.5 text-foreground placeholder:text-muted transition-colors duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/40"
             />
-            <Button type="submit" disabled={!canSend}>
-              Send
+            <Button
+              type="submit"
+              size="icon"
+              disabled={!canSend}
+              aria-label="Send message"
+              className="h-11 w-11 shrink-0"
+            >
+              <Send className="size-4" />
             </Button>
           </form>
           <p className="mt-2 text-xs text-muted">
