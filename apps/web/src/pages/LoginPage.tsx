@@ -18,7 +18,7 @@ export function LoginPage() {
     mutationFn: loginRequest,
     onSuccess: (data) => {
       setAuth(data.token, data.user);
-      navigate('/', { replace: true, state: { justLoggedIn: true } });
+      navigate('/practice', { replace: true, state: { justLoggedIn: true } });
     },
   });
 

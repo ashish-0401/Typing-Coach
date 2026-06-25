@@ -123,7 +123,7 @@ export function DashboardPage() {
               appear right here.
             </p>
             <Button asChild className="mt-5">
-              <Link to="/">Start a typing test</Link>
+              <Link to="/practice">Start a typing test</Link>
             </Button>
           </Card>
         </Reveal>

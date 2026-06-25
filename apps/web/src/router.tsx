@@ -7,18 +7,20 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TypingTestPage } from './pages/TypingTestPage';
+import { LandingPage } from './pages/LandingPage';
 import { SessionHistoryPage } from './pages/SessionHistoryPage';
 import { LearningProfilePage } from './pages/LearningProfilePage';
 import { CoachPage } from './pages/CoachPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 export const router = createBrowserRouter([
+  { path: '/', element: <LandingPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
   {
     element: <AppShell />,
     children: [
-      { path: '/', element: <TypingTestPage /> },
+      { path: '/practice', element: <TypingTestPage /> },
       {
         path: '/dashboard',
         element: (

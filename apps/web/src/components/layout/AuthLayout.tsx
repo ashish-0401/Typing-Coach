@@ -117,7 +117,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
           <div className="absolute right-4 top-4 flex items-center gap-1">
             <ThemeToggle />
             <Link
-              to="/"
+              to="/practice"
               aria-label="Back to typing test"
               title="Back to typing test"
               className="inline-flex size-9 items-center justify-center rounded-lg text-muted transition-colors duration-200 hover:bg-elevated hover:text-foreground cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

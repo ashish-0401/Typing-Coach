@@ -20,7 +20,7 @@ export function RegisterPage() {
     mutationFn: registerRequest,
     onSuccess: (data) => {
       setAuth(data.token, data.user);
-      navigate('/', { replace: true, state: { justSignedUp: true } });
+      navigate('/practice', { replace: true, state: { justSignedUp: true } });
     },
   });
 

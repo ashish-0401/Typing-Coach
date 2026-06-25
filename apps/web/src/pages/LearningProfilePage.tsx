@@ -235,7 +235,7 @@ export function LearningProfilePage() {
               speed, accuracy and the words that trip you up.
             </p>
             <Button asChild className="mt-5">
-              <Link to="/">Start a typing test</Link>
+              <Link to="/practice">Start a typing test</Link>
             </Button>
           </Card>
         </Reveal>

@@ -13,7 +13,7 @@ import { useAuth } from '../../lib/auth';
 import { cn } from '@/lib/utils';
 
 const NAV_LINKS = [
-  { to: '/', label: 'Practice', end: true, authed: false },
+  { to: '/practice', label: 'Practice', end: true, authed: false },
   { to: '/dashboard', label: 'Dashboard', authed: true },
   { to: '/history', label: 'History', authed: true },
   { to: '/profile', label: 'Profile', authed: true },
