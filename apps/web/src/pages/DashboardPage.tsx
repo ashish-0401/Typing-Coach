@@ -18,8 +18,10 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
+import { Sparkline } from '../components/ui/Sparkline';
+import { SpotlightCard } from '../components/ui/SpotlightCard';
 import { StatCard } from '../components/ui/StatCard';
-import { Reveal, Stagger, StaggerItem } from '../components/ui/motion';
+import { AnimatedNumber, Reveal, Stagger, StaggerItem } from '../components/ui/motion';
 
 function shortDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -80,11 +82,12 @@ export function DashboardPage() {
       <>
         {heading}
         <div className="grid grid-cols-4 gap-4">
+          <Skeleton className="col-span-2 row-span-2 h-[15.5rem] rounded-2xl" />
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
         </div>
-        <Skeleton className="mt-6 h-72 rounded-2xl" />
+        <Skeleton className="mt-4 h-72 rounded-2xl" />
       </>
     );
   }
@@ -132,19 +135,45 @@ export function DashboardPage() {
     wpm: session.wpm,
     accuracy: session.accuracy,
   }));
+  const recentWpm = chartData.map((point) => point.wpm);
   const recent = sessions.slice(0, 5);
 
   return (
     <>
       {heading}
 
-      <Stagger className="grid grid-cols-4 gap-4">
+      <Stagger className="grid grid-cols-4 auto-rows-fr gap-4">
+        <StaggerItem className="col-span-2 row-span-2">
+          <SpotlightCard className="flex h-full flex-col justify-between">
+            <div>
+              <span className="font-mono text-xs uppercase tracking-widest text-muted">
+                Average speed
+              </span>
+              <div className="mt-3 flex items-end gap-2">
+                <span className="bg-gradient-to-br from-accent via-primary to-accent bg-clip-text font-mono text-7xl font-bold leading-none tabular-nums text-transparent">
+                  <AnimatedNumber value={summary.averageWpm} />
+                </span>
+                <span className="mb-2 font-mono text-base text-muted">wpm</span>
+              </div>
+              <p className="mt-3 text-sm text-muted">
+                Across {summary.totalSessions}{' '}
+                {summary.totalSessions === 1 ? 'session' : 'sessions'},{' '}
+                {greetingName}.
+              </p>
+            </div>
+            {recentWpm.length > 1 && (
+              <div className="mt-6 h-16 w-full">
+                <Sparkline values={recentWpm} className="h-full w-full" />
+              </div>
+            )}
+          </SpotlightCard>
+        </StaggerItem>
         <StaggerItem>
           <StatCard
-            label="Avg WPM"
-            value={summary.averageWpm}
-            hint="All sessions"
-            icon={Gauge}
+            label="Best WPM"
+            value={summary.bestWpm}
+            hint="All time"
+            icon={Trophy}
           />
         </StaggerItem>
         <StaggerItem>
@@ -158,10 +187,10 @@ export function DashboardPage() {
         </StaggerItem>
         <StaggerItem>
           <StatCard
-            label="Best WPM"
-            value={summary.bestWpm}
-            hint="All time"
-            icon={Trophy}
+            label="Current WPM"
+            value={summary.currentWpm}
+            hint="Latest test"
+            icon={Gauge}
           />
         </StaggerItem>
         <StaggerItem>
@@ -174,8 +203,8 @@ export function DashboardPage() {
         </StaggerItem>
       </Stagger>
 
-      <Reveal delay={0.05}>
-        <Card className="mt-6">
+      <Reveal>
+        <SpotlightCard className="mt-4">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-lg font-semibold text-foreground">
               {metric === 'wpm' ? 'WPM over time' : 'Accuracy over time'}
@@ -271,11 +300,11 @@ export function DashboardPage() {
               </ResponsiveContainer>
             </div>
           )}
-        </Card>
+        </SpotlightCard>
       </Reveal>
 
-      <Reveal delay={0.1}>
-        <Card className="mt-6 overflow-hidden p-0">
+      <Reveal>
+        <Card className="mt-4 overflow-hidden p-0">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <h2 className="font-heading text-lg font-semibold text-foreground">
               Recent sessions

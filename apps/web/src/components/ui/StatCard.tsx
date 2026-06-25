@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Card } from './Card';
+import { SpotlightCard } from './SpotlightCard';
 import { AnimatedNumber } from './motion';
 
 export function StatCard({
@@ -16,7 +16,7 @@ export function StatCard({
   suffix?: string;
 }) {
   return (
-    <Card className="transition-transform duration-200 hover:-translate-y-0.5">
+    <SpotlightCard className="h-full">
       <div className="flex items-center justify-between">
         <span className="font-mono text-xs uppercase tracking-widest text-muted">
           {label}
@@ -29,6 +29,6 @@ export function StatCard({
         <AnimatedNumber value={value} suffix={suffix} />
       </div>
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
-    </Card>
+    </SpotlightCard>
   );
 }

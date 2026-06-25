@@ -2,10 +2,11 @@ import {
   animate,
   motion,
   useMotionValue,
+  useScroll,
   useTransform,
   type Variants,
 } from 'motion/react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -21,9 +22,10 @@ export function Reveal({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay, ease: EASE }}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-10% 0px' }}
+      transition={{ duration: 0.5, delay, ease: EASE }}
       className={className}
     >
       {children}
@@ -53,7 +55,8 @@ export function Stagger({
     <motion.div
       variants={containerVariants}
       initial="hidden"
-      animate="show"
+      whileInView="show"
+      viewport={{ once: true, margin: '-10% 0px' }}
       className={className}
     >
       {children}
@@ -70,6 +73,29 @@ export function StaggerItem({
 }) {
   return (
     <motion.div variants={itemVariants} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+/** Drift content vertically as it scrolls through the viewport. */
+export function Parallax({
+  children,
+  offset = 40,
+  className,
+}: {
+  children: ReactNode;
+  offset?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], [offset, -offset]);
+  return (
+    <motion.div ref={ref} style={{ y }} className={className}>
       {children}
     </motion.div>
   );
