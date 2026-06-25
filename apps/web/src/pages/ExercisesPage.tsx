@@ -1,8 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Dumbbell, Loader2, Play, Sparkles } from 'lucide-react';
+import { Dumbbell, Loader2, Play, Sparkles, Trash2 } from 'lucide-react';
 import {
+  deleteExercise,
   fetchExercises,
   fetchLatestDiagnosis,
   fetchLearningProfile,
@@ -74,6 +75,7 @@ export function ExercisesPage() {
   const [selectedWeakness, setSelectedWeakness] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<ExerciseDifficulty>('medium');
   const [activeDrill, setActiveDrill] = useState<GeneratedExercise | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   // Default to the top weakness until the user picks one, derived rather than
   // stored in state (avoids a setState-in-effect cascade).
@@ -86,6 +88,16 @@ export function ExercisesPage() {
         created,
         ...(old ?? []),
       ]);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteExercise,
+    onSuccess: (_result, id) => {
+      queryClient.setQueryData<GeneratedExercise[]>(['exercises'], (old) =>
+        (old ?? []).filter((exercise) => exercise._id !== id),
+      );
+      setConfirmingId(null);
     },
   });
 
@@ -261,14 +273,49 @@ export function ExercisesPage() {
                       <Badge variant="mono">{exercise.difficulty}</Badge>
                     </div>
                   </div>
-                  <Button
-                    variant="secondary"
-                    onClick={() => practice(exercise)}
-                    className="shrink-0"
-                  >
-                    <Play className="size-4" />
-                    Practice
-                  </Button>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {confirmingId === exercise._id ? (
+                      <>
+                        <span className="font-mono text-xs text-muted">
+                          Delete?
+                        </span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(exercise._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          Delete
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setConfirmingId(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="secondary"
+                          onClick={() => practice(exercise)}
+                        >
+                          <Play className="size-4" />
+                          Practice
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingId(exercise._id)}
+                          aria-label="Delete drill"
+                          title="Delete drill"
+                          className="inline-flex size-10 cursor-pointer items-center justify-center rounded-xl border border-border bg-elevated text-muted transition-colors hover:border-error/40 hover:text-error"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </Card>
               </li>
             ))}

@@ -144,14 +144,41 @@ export async function createSession(
   return (await response.json()) as CreateSessionResponse;
 }
 
-export async function fetchSessions(): Promise<TypingSession[]> {
-  const response = await fetch(`${API_URL}/sessions`, {
+export interface PaginatedSessions {
+  items: TypingSession[];
+  total: number;
+  tags: string[];
+}
+
+export async function fetchSessions(params?: {
+  page?: number;
+  limit?: number;
+  tag?: string;
+}): Promise<PaginatedSessions> {
+  const query = new URLSearchParams();
+  if (params?.page) {
+    query.set('page', String(params.page));
+  }
+  if (params?.limit) {
+    query.set('limit', String(params.limit));
+  }
+  if (params?.tag) {
+    query.set('tag', params.tag);
+  }
+  const qs = query.toString();
+  const response = await fetch(`${API_URL}/sessions${qs ? `?${qs}` : ''}`, {
     headers: authHeaders(),
   });
   if (!response.ok) {
     throw new Error(await parseError(response));
   }
-  return (await response.json()) as TypingSession[];
+  return (await response.json()) as PaginatedSessions;
+}
+
+export interface TrendPoint {
+  date: string;
+  wpm: number;
+  accuracy: number;
 }
 
 export interface AnalyticsSummary {
@@ -160,10 +187,14 @@ export interface AnalyticsSummary {
   bestWpm: number;
   averageAccuracy: number;
   totalSessions: number;
+  trend: TrendPoint[];
 }
 
-export async function fetchAnalyticsSummary(): Promise<AnalyticsSummary> {
-  const response = await fetch(`${API_URL}/analytics/summary`, {
+export async function fetchAnalyticsSummary(
+  includeDrills = false,
+): Promise<AnalyticsSummary> {
+  const qs = includeDrills ? '?includeDrills=true' : '';
+  const response = await fetch(`${API_URL}/analytics/summary${qs}`, {
     headers: authHeaders(),
   });
   if (!response.ok) {
@@ -302,5 +333,15 @@ export async function generateExercise(
     throw new Error(await parseError(response));
   }
   return (await response.json()) as GeneratedExercise;
+}
+
+export async function deleteExercise(id: string): Promise<void> {
+  const response = await fetch(`${API_URL}/exercises/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
 }
 

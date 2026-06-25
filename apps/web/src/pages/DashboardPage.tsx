@@ -12,8 +12,9 @@ import {
 } from 'recharts';
 import { Activity, Gauge, Target, Trophy } from 'lucide-react';
 import { useAuth } from '../lib/auth';
-import { fetchAnalyticsSummary, fetchSessions } from '../lib/api';
-import type { TypingSession } from '../lib/api';
+import { fetchAnalyticsSummary } from '../lib/api';
+import { cn } from '@/lib/utils';
+import { SessionHistoryTable } from '../components/sessions/SessionHistoryTable';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
@@ -61,14 +62,11 @@ export function DashboardPage() {
   const user = useAuth((s) => s.user);
   const greetingName = user?.name ?? 'there';
   const [metric, setMetric] = useState<'wpm' | 'accuracy'>('wpm');
+  const [includeDrills, setIncludeDrills] = useState(false);
 
   const summaryQuery = useQuery({
-    queryKey: ['analytics', 'summary'],
-    queryFn: fetchAnalyticsSummary,
-  });
-  const sessionsQuery = useQuery({
-    queryKey: ['sessions'],
-    queryFn: fetchSessions,
+    queryKey: ['analytics', 'summary', includeDrills],
+    queryFn: () => fetchAnalyticsSummary(includeDrills),
   });
 
   const heading = (
@@ -78,7 +76,7 @@ export function DashboardPage() {
     />
   );
 
-  if (summaryQuery.isPending || sessionsQuery.isPending) {
+  if (summaryQuery.isPending) {
     return (
       <>
         {heading}
@@ -93,26 +91,41 @@ export function DashboardPage() {
     );
   }
 
-  if (summaryQuery.isError || sessionsQuery.isError) {
-    const message =
-      summaryQuery.error?.message ??
-      sessionsQuery.error?.message ??
-      'Something went wrong.';
+  if (summaryQuery.isError) {
     return (
       <>
         {heading}
-        <p className="text-error">{message}</p>
+        <p className="text-error">{summaryQuery.error.message}</p>
       </>
     );
   }
 
   const summary = summaryQuery.data;
-  const sessions = sessionsQuery.data;
+
+  const drillToggle = (
+    <div className="mb-6 flex items-center justify-end gap-3">
+      <span className="font-mono text-xs text-muted">Drills in stats</span>
+      <button
+        type="button"
+        onClick={() => setIncludeDrills((value) => !value)}
+        aria-pressed={includeDrills}
+        className={cn(
+          'cursor-pointer rounded-full border px-3.5 py-1.5 font-mono text-xs transition-colors duration-200',
+          includeDrills
+            ? 'border-primary/50 bg-primary/10 text-foreground'
+            : 'border-border bg-elevated text-muted hover:border-primary/30 hover:text-foreground',
+        )}
+      >
+        {includeDrills ? 'Included' : 'Excluded'}
+      </button>
+    </div>
+  );
 
   if (summary.totalSessions === 0) {
     return (
       <>
         {heading}
+        {drillToggle}
         <Reveal>
           <Card className="max-w-xl">
             <h2 className="font-heading text-lg font-semibold text-foreground">
@@ -131,17 +144,17 @@ export function DashboardPage() {
     );
   }
 
-  const chartData = [...sessions].reverse().map((session: TypingSession) => ({
-    label: shortDate(session.date),
-    wpm: session.wpm,
-    accuracy: session.accuracy,
+  const chartData = summary.trend.map((point) => ({
+    label: shortDate(point.date),
+    wpm: point.wpm,
+    accuracy: point.accuracy,
   }));
   const recentWpm = chartData.map((point) => point.wpm);
-  const recent = sessions.slice(0, 5);
 
   return (
     <>
       {heading}
+      {drillToggle}
 
       <Marquee
         items={[
@@ -318,33 +331,12 @@ export function DashboardPage() {
       </Reveal>
 
       <Reveal>
-        <Card className="mt-4 overflow-hidden p-0">
-          <div className="flex items-center justify-between border-b border-border px-6 py-4">
-            <h2 className="font-heading text-lg font-semibold text-foreground">
-              Recent sessions
-            </h2>
-            <Link
-              to="/history"
-              className="text-sm font-medium text-accent hover:underline"
-            >
-              View all
-            </Link>
-          </div>
-          <ul className="divide-y divide-border/60">
-            {recent.map((session) => (
-              <li
-                key={session._id}
-                className="flex items-center justify-between px-6 py-3.5 font-mono text-sm transition-colors hover:bg-elevated/50"
-              >
-                <span className="text-muted">{shortDate(session.date)}</span>
-                <span className="flex items-center gap-6">
-                  <span className="text-accent">{session.wpm} wpm</span>
-                  <span className="text-foreground">{session.accuracy}%</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+        <div className="mt-8">
+          <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">
+            Session history
+          </h2>
+          <SessionHistoryTable />
+        </div>
       </Reveal>
     </>
   );

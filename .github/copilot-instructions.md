@@ -38,13 +38,13 @@ Do not introduce other major dependencies without asking.
   DTOs (with validation), and Mongo schemas.
 - **MongoDB collections:** Users, TypingSessions, LearningProfiles, Diagnoses, TrainingPlans,
   Milestones, CoachConversations, GeneratedExercises. Include indexes and relationships.
-- **Frontend pages:** Login, Register, Dashboard, Typing Test, Session History, Learning
-  Profile, AI Coach, Settings.
+- **Frontend pages:** Login, Register, Dashboard (includes the paginated, filterable session
+  history), Typing Test, Learning Profile, Drills, AI Coach, Settings.
 - Target repo layout: `apps/web` (frontend) and `apps/api` (backend).
 - **Guest mode (try-before-signup):** the Typing Test is **public** so visitors can try it
   without an account. Guest results are **local-only** (component state / `localStorage`) and are
   **never persisted to MongoDB**. This keeps the permanent-history model tied to real accounts.
-  Anything implying identity (Dashboard, Session History, Learning Profile, `POST /sessions`) stays
+  Anything implying identity (Dashboard, Learning Profile, `POST /sessions`) stays
   behind the auth guard. Do NOT create anonymous/guest DB user records. On first signup we may
   optionally migrate the guest's last local session into the new account.
 - **Navigation & landing (decided in Phase 1):** the Typing Test (Practice) is the public home

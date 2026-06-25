@@ -58,6 +58,7 @@ export function TypingTestPage() {
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['sessions'] });
       void queryClient.invalidateQueries({ queryKey: ['learning-profile'] });
+      void queryClient.invalidateQueries({ queryKey: ['analytics'] });
       const top = pickTopMilestone(data.newMilestones);
       if (top) {
         setMilestoneToast(top);

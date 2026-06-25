@@ -8,7 +8,6 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TypingTestPage } from './pages/TypingTestPage';
 import { LandingPage } from './pages/LandingPage';
-import { SessionHistoryPage } from './pages/SessionHistoryPage';
 import { LearningProfilePage } from './pages/LearningProfilePage';
 import { CoachPage } from './pages/CoachPage';
 import { ExercisesPage } from './pages/ExercisesPage';
@@ -27,14 +26,6 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <DashboardPage />
-          </RequireAuth>
-        ),
-      },
-      {
-        path: '/history',
-        element: (
-          <RequireAuth>
-            <SessionHistoryPage />
           </RequireAuth>
         ),
       },

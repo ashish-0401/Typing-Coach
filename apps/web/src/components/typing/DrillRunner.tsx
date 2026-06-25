@@ -81,6 +81,7 @@ export function DrillRunner({
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['sessions'] });
       void queryClient.invalidateQueries({ queryKey: ['learning-profile'] });
+      void queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 
