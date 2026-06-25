@@ -131,7 +131,7 @@ function UserMenu({
           <DropdownMenu.Item asChild>
             <Link
               to="/settings"
-              className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted outline-none transition-colors data-[highlighted]:bg-card data-[highlighted]:text-foreground"
+              className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted outline-none transition-colors data-highlighted:bg-card data-highlighted:text-foreground"
             >
               <Settings className="size-4" />
               Settings
@@ -139,7 +139,7 @@ function UserMenu({
           </DropdownMenu.Item>
           <DropdownMenu.Item
             onSelect={onLogout}
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted outline-none transition-colors data-[highlighted]:bg-card data-[highlighted]:text-foreground"
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted outline-none transition-colors data-highlighted:bg-card data-highlighted:text-foreground"
           >
             <LogOut className="size-4" />
             Log out

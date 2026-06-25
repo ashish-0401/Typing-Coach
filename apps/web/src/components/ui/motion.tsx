@@ -1,5 +1,11 @@
-import { motion, type Variants } from 'motion/react';
-import type { ReactNode } from 'react';
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useTransform,
+  type Variants,
+} from 'motion/react';
+import { useEffect, type ReactNode } from 'react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -67,4 +73,27 @@ export function StaggerItem({
       {children}
     </motion.div>
   );
+}
+
+/** Count a number up from 0 to `value` on mount. */
+export function AnimatedNumber({
+  value,
+  decimals = 0,
+  suffix = '',
+  className,
+}: {
+  value: number;
+  decimals?: number;
+  suffix?: string;
+  className?: string;
+}) {
+  const count = useMotionValue(0);
+  const text = useTransform(count, (latest) => latest.toFixed(decimals) + suffix);
+
+  useEffect(() => {
+    const controls = animate(count, value, { duration: 0.9, ease: EASE });
+    return () => controls.stop();
+  }, [value, count]);
+
+  return <motion.span className={className}>{text}</motion.span>;
 }
