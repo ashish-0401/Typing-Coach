@@ -16,6 +16,7 @@ import {
   findMistypedWords,
 } from '../typing/metrics';
 import { generateWords } from '../typing/words';
+import { fetchProsePassage, localProsePassage } from '../typing/prose';
 import { useTypingConfig } from '../typing/config';
 import type { Mode } from '../typing/config';
 import { Toast } from '../components/ui/Toast';
@@ -36,6 +37,9 @@ function buildTarget(
   punctuation: boolean,
   numbers: boolean,
 ): string {
+  if (mode === 'prose') {
+    return localProsePassage();
+  }
   return mode === 'time'
     ? generateWords(Math.max(60, timeSec * 3), { punctuation, numbers })
     : generateWords(wordCount, { punctuation, numbers });
@@ -101,6 +105,7 @@ export function TypingTestPage() {
   const [resizeTick, setResizeTick] = useState(0);
   const [isRepeat, setIsRepeat] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
+  const [loadingPassage, setLoadingPassage] = useState(false);
 
   // Refs mirroring state for use inside the timer interval.
   const totalRef = useRef(0);
@@ -112,6 +117,8 @@ export function TypingTestPage() {
   const prevIncorrectRef = useRef(0);
   const doneRef = useRef(false);
   const savedRef = useRef(false);
+  const proseReqRef = useRef(0);
+  const didInitProse = useRef(false);
 
   const isComplete = result !== null;
   const isActive = startTime !== null && !isComplete;
@@ -179,7 +186,12 @@ export function TypingTestPage() {
         incorrectChars: stats.incorrect,
         mistypedWords: findMistypedWords(target, text),
         durationMs,
-        testType: mode === 'time' ? `time ${timeSec}s` : `words ${wordCount}`,
+        testType:
+          mode === 'time'
+            ? `time ${timeSec}s`
+            : mode === 'words'
+              ? `words ${wordCount}`
+              : 'prose',
         samples: [...samplesRef.current],
       });
     },
@@ -298,9 +310,33 @@ export function TypingTestPage() {
     window.requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
+  // Prose mode pulls a real passage from a public API, with a local fallback.
+  const startProse = useCallback(async () => {
+    const reqId = (proseReqRef.current += 1);
+    setLoadingPassage(true);
+    const passage = await fetchProsePassage();
+    if (proseReqRef.current !== reqId) {
+      return;
+    }
+    setLoadingPassage(false);
+    startSession(passage, false);
+  }, [startSession]);
+
+  // On arriving already in prose mode, fetch one fresh passage.
+  useEffect(() => {
+    if (!didInitProse.current && useTypingConfig.getState().mode === 'prose') {
+      didInitProse.current = true;
+      void startProse();
+    }
+  }, [startProse]);
+
   const nextTest = useCallback(() => {
+    if (mode === 'prose') {
+      void startProse();
+      return;
+    }
     startSession(buildTarget(mode, timeSec, wordCount, punctuation, numbers), false);
-  }, [startSession, mode, timeSec, wordCount, punctuation, numbers]);
+  }, [startSession, startProse, mode, timeSec, wordCount, punctuation, numbers]);
 
   const repeatTest = useCallback(() => {
     startSession(target, true);
@@ -308,6 +344,10 @@ export function TypingTestPage() {
 
   function chooseMode(nextMode: Mode) {
     setMode(nextMode);
+    if (nextMode === 'prose') {
+      void startProse();
+      return;
+    }
     startSession(buildTarget(nextMode, timeSec, wordCount, punctuation, numbers), false);
   }
 
@@ -359,8 +399,8 @@ export function TypingTestPage() {
     setBackspaces(newBackspaces);
     setTyped(next);
 
-    // Words mode completes when the whole stream is typed.
-    if (mode === 'words' && next.length >= target.length) {
+    // Words and prose modes complete when the whole passage is typed.
+    if (mode !== 'time' && next.length >= target.length) {
       const durationMs = now - (startTime ?? now);
       typedRef.current = next;
       correctRef.current = newCorrect;
@@ -422,23 +462,30 @@ export function TypingTestPage() {
               <TabButton active={mode === 'words'} onClick={() => chooseMode('words')}>
                 words
               </TabButton>
-              <span className="mx-2 h-5 w-px bg-border" />
-              {amountOptions.map((value) => (
-                <TabButton
-                  key={value}
-                  active={activeAmount === value}
-                  onClick={() => chooseAmount(value)}
-                >
-                  {value}
-                </TabButton>
-              ))}
-              <span className="mx-2 h-5 w-px bg-border" />
-              <TabButton active={punctuation} onClick={togglePunctuation}>
-                punctuation
+              <TabButton active={mode === 'prose'} onClick={() => chooseMode('prose')}>
+                prose
               </TabButton>
-              <TabButton active={numbers} onClick={toggleNumbers}>
-                numbers
-              </TabButton>
+              {mode !== 'prose' && (
+                <>
+                  <span className="mx-2 h-5 w-px bg-border" />
+                  {amountOptions.map((value) => (
+                    <TabButton
+                      key={value}
+                      active={activeAmount === value}
+                      onClick={() => chooseAmount(value)}
+                    >
+                      {value}
+                    </TabButton>
+                  ))}
+                  <span className="mx-2 h-5 w-px bg-border" />
+                  <TabButton active={punctuation} onClick={togglePunctuation}>
+                    punctuation
+                  </TabButton>
+                  <TabButton active={numbers} onClick={toggleNumbers}>
+                    numbers
+                  </TabButton>
+                </>
+              )}
             </div>
           </div>
 
@@ -527,10 +574,18 @@ export function TypingTestPage() {
                 })}
               </div>
 
-              {!isFocused && (
+              {!isFocused && !loadingPassage && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <span className="rounded-xl border border-border bg-elevated/90 px-4 py-2 text-sm font-medium text-foreground shadow-lg backdrop-blur">
                     Click or press any key to focus
+                  </span>
+                </div>
+              )}
+
+              {loadingPassage && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                  <span className="font-mono text-sm text-muted">
+                    Loading a passage...
                   </span>
                 </div>
               )}
@@ -543,7 +598,7 @@ export function TypingTestPage() {
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              disabled={isComplete}
+              disabled={isComplete || loadingPassage}
               spellCheck={false}
               autoComplete="off"
               autoCorrect="off"
@@ -571,7 +626,7 @@ export function TypingTestPage() {
               <button
                 type="button"
                 onClick={nextTest}
-                title="Next test (new words)"
+                title="Next test"
                 aria-label="Next test"
                 className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-elevated text-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Mode = 'time' | 'words';
+export type Mode = 'time' | 'words' | 'prose';
 
 interface TypingConfigState {
   mode: Mode;

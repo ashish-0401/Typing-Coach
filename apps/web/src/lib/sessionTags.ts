@@ -4,14 +4,17 @@
  * filtered so like-for-like sessions are compared (WPM varies a lot with length).
  */
 
-type Mode = 'time' | 'words';
+type Mode = 'time' | 'words' | 'prose';
 
-/** The tag recording a Practice session's configuration, e.g. "30s" or "25w". */
+/** The tag recording a Practice session's configuration, e.g. "30s", "25w" or "prose". */
 export function configTag(
   mode: Mode,
   timeSec: number,
   wordCount: number,
 ): string {
+  if (mode === 'prose') {
+    return 'prose';
+  }
   return mode === 'time' ? `${timeSec}s` : `${wordCount}w`;
 }
 
