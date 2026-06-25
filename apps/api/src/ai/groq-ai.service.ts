@@ -1,10 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AiCompletionRequest, AiError, AiService } from './ai.service';
+import {
+  AiChatRequest,
+  AiCompletionRequest,
+  AiError,
+  AiService,
+} from './ai.service';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
 const REQUEST_TIMEOUT_MS = 30_000;
+
+interface GroqMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
 
 interface GroqResponse {
   choices?: Array<{ message?: { content?: string } }>;
@@ -24,15 +34,29 @@ export class GroqAiService extends AiService {
   }
 
   async complete(request: AiCompletionRequest): Promise<string> {
-    if (!this.apiKey) {
-      throw new AiError('GROQ_API_KEY is not configured');
-    }
-
-    const messages: Array<{ role: 'system' | 'user'; content: string }> = [];
+    const messages: GroqMessage[] = [];
     if (request.system) {
       messages.push({ role: 'system', content: request.system });
     }
     messages.push({ role: 'user', content: request.prompt });
+    return this.send(messages, request.json ?? false);
+  }
+
+  async chat(request: AiChatRequest): Promise<string> {
+    const messages: GroqMessage[] = [];
+    if (request.system) {
+      messages.push({ role: 'system', content: request.system });
+    }
+    for (const message of request.messages) {
+      messages.push({ role: message.role, content: message.content });
+    }
+    return this.send(messages, false);
+  }
+
+  private async send(messages: GroqMessage[], json: boolean): Promise<string> {
+    if (!this.apiKey) {
+      throw new AiError('GROQ_API_KEY is not configured');
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -49,7 +73,7 @@ export class GroqAiService extends AiService {
           model: this.model,
           messages,
           temperature: 0.2,
-          ...(request.json ? { response_format: { type: 'json_object' } } : {}),
+          ...(json ? { response_format: { type: 'json_object' } } : {}),
         }),
         signal: controller.signal,
       });

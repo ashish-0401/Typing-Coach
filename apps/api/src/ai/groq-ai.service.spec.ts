@@ -61,6 +61,46 @@ describe('GroqAiService', () => {
     ]);
   });
 
+  it('sends the system message and chat history in order', async () => {
+    let capturedBody = '';
+    const fetchMock = jest
+      .fn()
+      .mockImplementation((_url: string, init: RequestInit) => {
+        capturedBody = init.body as string;
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              choices: [{ message: { content: 'sure thing' } }],
+            }),
+        } as unknown as Response);
+      });
+    global.fetch = fetchMock;
+
+    const service = new GroqAiService(configWith({ GROQ_API_KEY: 'k' }));
+    const reply = await service.chat({
+      system: 'be a coach',
+      messages: [
+        { role: 'user', content: 'how am I doing?' },
+        { role: 'assistant', content: 'great' },
+        { role: 'user', content: 'and now?' },
+      ],
+    });
+
+    expect(reply).toBe('sure thing');
+    const body = JSON.parse(capturedBody) as {
+      messages: { role: string; content: string }[];
+      response_format?: unknown;
+    };
+    expect(body.messages).toEqual([
+      { role: 'system', content: 'be a coach' },
+      { role: 'user', content: 'how am I doing?' },
+      { role: 'assistant', content: 'great' },
+      { role: 'user', content: 'and now?' },
+    ]);
+    expect(body.response_format).toBeUndefined();
+  });
+
   it('falls back to the default model when GROQ_MODEL is empty', async () => {
     let capturedBody = '';
     const fetchMock = jest
