@@ -1,4 +1,11 @@
-import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
+import {
+  NavLink,
+  Link,
+  Outlet,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown, LogOut, Settings } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
@@ -22,6 +29,7 @@ function navLinkClass({ isActive }: { isActive: boolean }): string {
 
 export function AppShell() {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
 
@@ -89,7 +97,17 @@ export function AppShell() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-10">
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );
