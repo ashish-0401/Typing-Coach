@@ -101,4 +101,67 @@ describe('parseExerciseResponse', () => {
     });
     expect(() => parseExerciseResponse(raw)).toThrow(ExerciseFormatError);
   });
+
+  it('parses JSON wrapped in markdown code fences', () => {
+    const inner = JSON.stringify({
+      title: 'Fenced',
+      text: 'Their friend received a brief note and believed every line of it today.',
+      targetWords: ['receive'],
+    });
+    const result = parseExerciseResponse('```json\n' + inner + '\n```');
+    expect(result.text).toContain('received');
+  });
+
+  it('extracts the JSON object when the model adds stray text', () => {
+    const inner = JSON.stringify({
+      title: 'Stray',
+      text: 'Their friend received a brief note and believed every line of it today.',
+    });
+    const result = parseExerciseResponse(
+      `Sure! Here is your drill:\n${inner}\nHope that helps.`,
+    );
+    expect(result.title).toBe('Stray');
+  });
+
+  it('accepts the passage under an alternate key', () => {
+    const raw = JSON.stringify({
+      title: 'Alt key',
+      passage:
+        'Their friend received a brief note and believed every line of it today.',
+    });
+    expect(parseExerciseResponse(raw).text).toContain('received');
+  });
+
+  it('joins an array passage into one paragraph', () => {
+    const raw = JSON.stringify({
+      title: 'Array text',
+      text: [
+        'Their friend received a brief note and believed it.',
+        'The chief retrieved the field report and reviewed each piece.',
+      ],
+    });
+    const result = parseExerciseResponse(raw);
+    expect(result.text).not.toContain('\n');
+    expect(result.text).toContain('believed it. The chief');
+  });
+
+  it('defaults the title when it is missing', () => {
+    const raw = JSON.stringify({
+      text: 'Their friend received a brief note and believed every line of it today.',
+    });
+    expect(parseExerciseResponse(raw).title.length).toBeGreaterThan(0);
+  });
+
+  it('accepts comma-separated target words', () => {
+    const raw = JSON.stringify({
+      title: 'Commas',
+      text: 'Their friend received a brief note and believed every line of it today.',
+      targetWords: 'receive, believe , field',
+    });
+    expect(parseExerciseResponse(raw).targetWords).toEqual([
+      'receive',
+      'believe',
+      'field',
+    ]);
+  });
 });

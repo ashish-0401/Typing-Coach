@@ -34,11 +34,12 @@ export class ExerciseFormatError extends Error {
 
 const MAX_TITLE_LEN = 80;
 const MAX_TEXT_LEN = 1200;
-// A real passage, not a stray word or a two-word list.
-const MIN_TEXT_LEN = 40;
-const MIN_WORDS = 8;
+// A real passage, not a stray word or a short list.
+const MIN_TEXT_LEN = 30;
+const MIN_WORDS = 6;
 const MAX_TARGET_WORDS = 12;
 const MAX_TARGET_WORD_LEN = 40;
+const FALLBACK_TITLE = 'Practice drill';
 
 const SYSTEM_PROMPT = [
   'You are a typing-exercise author. You write short practice passages that train a',
@@ -86,22 +87,21 @@ export function buildExercisePrompt(ctx: ExerciseContext): {
  * passage is normalized to a single paragraph and capped so the drill stays finite.
  */
 export function parseExerciseResponse(raw: string): ParsedExercise {
-  let data: unknown;
-  try {
-    data = JSON.parse(raw.trim());
-  } catch {
-    throw new ExerciseFormatError('AI response was not valid JSON');
-  }
-
+  const data = parseJsonLoosely(raw);
   if (typeof data !== 'object' || data === null) {
     throw new ExerciseFormatError('AI response was not a JSON object');
   }
 
   const obj = data as Record<string, unknown>;
-  const title = asText(obj.title);
-  const rawText = asText(obj.text);
-  if (!title || !rawText) {
-    throw new ExerciseFormatError('AI response missing title or text');
+  // Models vary the key and sometimes return the passage as an array of lines.
+  const rawText =
+    asText(obj.text) ??
+    asText(obj.passage) ??
+    asText(obj.content) ??
+    joinStrings(obj.text) ??
+    joinStrings(obj.passage);
+  if (!rawText) {
+    throw new ExerciseFormatError('AI response had no usable passage text');
   }
 
   // Collapse any line breaks/runs of whitespace into a single-paragraph string,
@@ -109,10 +109,12 @@ export function parseExerciseResponse(raw: string): ParsedExercise {
   const text = capPassage(rawText.replace(/\s+/g, ' ').trim());
   if (!looksLikeProse(text)) {
     throw new ExerciseFormatError(
-      'AI response was not a usable passage (looks like a word list or is too short)',
+      'AI passage was too short or looked like a word list',
     );
   }
 
+  // Title is nice-to-have; never fail the whole drill over a missing one.
+  const title = asText(obj.title) ?? asText(obj.name) ?? FALLBACK_TITLE;
   return {
     title: title.slice(0, MAX_TITLE_LEN),
     text,
@@ -151,13 +153,52 @@ function asText(value: unknown): string | undefined {
 }
 
 function asWordArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value
+  // Accept an array, or a comma-separated string, of target words.
+  const items = Array.isArray(value)
+    ? value
+    : typeof value === 'string'
+      ? value.split(',')
+      : [];
+  return items
     .filter((item): item is string => typeof item === 'string')
     .map((item) => item.trim())
     .filter((item) => item.length > 0)
     .slice(0, MAX_TARGET_WORDS)
     .map((item) => item.slice(0, MAX_TARGET_WORD_LEN));
+}
+
+/** Parse JSON, tolerating code fences and stray text around the object. */
+function parseJsonLoosely(raw: string): unknown {
+  const cleaned = raw
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Fall back to the largest {...} slice, in case the model added prose.
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      try {
+        return JSON.parse(cleaned.slice(start, end + 1));
+      } catch {
+        // fall through to the error below
+      }
+    }
+    throw new ExerciseFormatError('AI response was not valid JSON');
+  }
+}
+
+/** Join an array of strings into one passage, or undefined if not an array. */
+function joinStrings(value: unknown): string | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const joined = value
+    .filter((item): item is string => typeof item === 'string')
+    .join(' ')
+    .trim();
+  return joined.length > 0 ? joined : undefined;
 }

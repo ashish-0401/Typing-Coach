@@ -92,7 +92,7 @@ export class ExercisesService {
       parsed = parseExerciseResponse(raw);
     } catch (error) {
       this.logger.warn(
-        `AI response could not be parsed: ${error instanceof Error ? error.message : String(error)}`,
+        `AI response could not be parsed: ${error instanceof Error ? error.message : String(error)}. Raw (truncated): ${raw.slice(0, 300)}`,
       );
       throw new ServiceUnavailableException(
         'The AI returned an unexpected response. Please try again.',
