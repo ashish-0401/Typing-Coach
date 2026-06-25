@@ -1,9 +1,13 @@
 import type { HTMLAttributes } from 'react';
+import { cn } from '@/lib/utils';
 
-export function Card({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`rounded-xl border border-border bg-card p-6 transition-colors duration-200 ${className}`}
+      className={cn(
+        'rounded-2xl border border-border bg-card p-6 shadow-md transition-colors duration-200',
+        className,
+      )}
       {...props}
     />
   );
