@@ -28,6 +28,6 @@ import { DiagnosisController } from './diagnosis.controller';
   ],
   controllers: [LearningProfileController, DiagnosisController],
   providers: [LearningProfileService, DiagnosisService],
-  exports: [LearningProfileService],
+  exports: [LearningProfileService, DiagnosisService],
 })
 export class LearningProfileModule {}

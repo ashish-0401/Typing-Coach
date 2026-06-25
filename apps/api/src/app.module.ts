@@ -10,6 +10,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { LearningProfileModule } from './learning-profile/learning-profile.module';
 import { AiModule } from './ai/ai.module';
+import { CoachModule } from './coach/coach.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AiModule } from './ai/ai.module';
     AnalyticsModule,
     LearningProfileModule,
     AiModule,
+    CoachModule,
   ],
   controllers: [AppController],
   providers: [AppService],
