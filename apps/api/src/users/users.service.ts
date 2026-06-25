@@ -9,7 +9,11 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  create(email: string, passwordHash: string, name: string): Promise<UserDocument> {
+  create(
+    email: string,
+    passwordHash: string,
+    name: string,
+  ): Promise<UserDocument> {
     return this.userModel.create({ email, passwordHash, name });
   }
 
@@ -22,8 +26,6 @@ export class UsersService {
   }
 
   updateName(id: string, name: string): Promise<UserDocument | null> {
-    return this.userModel
-      .findByIdAndUpdate(id, { name }, { new: true })
-      .exec();
+    return this.userModel.findByIdAndUpdate(id, { name }, { new: true }).exec();
   }
 }
