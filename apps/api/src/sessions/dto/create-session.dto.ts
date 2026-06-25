@@ -1,5 +1,15 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsInt, IsNumber, IsString, Max, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class CreateSessionDto {
   @IsNumber()
@@ -19,4 +29,13 @@ export class CreateSessionDto {
   @IsString({ each: true })
   @Type(() => String)
   mistakes!: string[];
+
+  /** Optional labels for the session, e.g. ["drill"]. */
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @IsString({ each: true })
+  @MaxLength(20, { each: true })
+  @Type(() => String)
+  tags?: string[];
 }

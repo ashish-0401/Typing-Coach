@@ -112,6 +112,7 @@ export interface CreateSessionInput {
   accuracy: number;
   backspaces: number;
   mistakes: string[];
+  tags?: string[];
 }
 
 export interface TypingSession {
@@ -121,6 +122,7 @@ export interface TypingSession {
   accuracy: number;
   backspaces: number;
   mistakes: string[];
+  tags: string[];
 }
 
 export interface CreateSessionResponse {

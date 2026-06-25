@@ -1,26 +1,20 @@
-import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Results } from '../components/typing/Results';
-import type { SessionResult, WpmSample } from '../components/typing/Results';
-import { useAuth } from '../lib/auth';
-import { createSession, type Milestone } from '../lib/api';
-import { milestoneLabel, pickTopMilestone } from '../lib/milestones';
+import { RotateCcw, X } from 'lucide-react';
+import { createSession } from '../../lib/api';
+import type { GeneratedExercise } from '../../lib/api';
+import { useAuth } from '../../lib/auth';
 import {
   calculateAccuracy,
   calculateWpm,
   countCharStats,
   diffInput,
   findMistypedWords,
-} from '../typing/metrics';
-import { generateWords } from '../typing/words';
-import { useTypingConfig } from '../typing/config';
-import type { Mode } from '../typing/config';
-import { Toast } from '../components/ui/Toast';
-
-const TIME_OPTIONS = [15, 30, 60] as const;
-const WORD_OPTIONS = [10, 25, 50] as const;
+} from '../../typing/metrics';
+import { Button } from '../ui/Button';
+import { Results } from './Results';
+import type { SessionResult, WpmSample } from './Results';
 
 interface CaretPosition {
   left: number;
@@ -28,67 +22,30 @@ interface CaretPosition {
   height: number;
 }
 
-function buildTarget(
-  mode: Mode,
-  timeSec: number,
-  wordCount: number,
-  punctuation: boolean,
-  numbers: boolean,
-): string {
-  return mode === 'time'
-    ? generateWords(Math.max(60, timeSec * 3), { punctuation, numbers })
-    : generateWords(wordCount, { punctuation, numbers });
-}
-
-export function TypingTestPage() {
+/**
+ * Runs a generated drill in place using the same typing surface and results
+ * panel as the Practice test, but for a fixed passage: no config bar, no "next
+ * test", and Tab restarts the same drill. Completed drills are saved (tagged
+ * "drill") so they are distinguishable in history.
+ */
+export function DrillRunner({
+  exercise,
+  onExit,
+}: {
+  exercise: GeneratedExercise;
+  onExit: () => void;
+}) {
+  const target = exercise.text;
   const user = useAuth((s) => s.user);
-  const location = useLocation();
-  const navState = location.state as {
-    justSignedUp?: boolean;
-    justLoggedIn?: boolean;
-  } | null;
-  const justSignedUp = navState?.justSignedUp ?? false;
-  const justLoggedIn = navState?.justLoggedIn ?? false;
-  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const queryClient = useQueryClient();
-  const [milestoneToast, setMilestoneToast] = useState<Milestone | null>(null);
-  const saveMutation = useMutation({
-    mutationFn: createSession,
-    onSuccess: (data) => {
-      void queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      void queryClient.invalidateQueries({ queryKey: ['learning-profile'] });
-      const top = pickTopMilestone(data.newMilestones);
-      if (top) {
-        setMilestoneToast(top);
-      }
-    },
-  });
 
   const inputRef = useRef<HTMLInputElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  // Config (persisted across sessions)
-  const mode = useTypingConfig((s) => s.mode);
-  const timeSec = useTypingConfig((s) => s.timeSec);
-  const wordCount = useTypingConfig((s) => s.wordCount);
-  const punctuation = useTypingConfig((s) => s.punctuation);
-  const numbers = useTypingConfig((s) => s.numbers);
-  const setMode = useTypingConfig((s) => s.setMode);
-  const setTimeSec = useTypingConfig((s) => s.setTimeSec);
-  const setWordCount = useTypingConfig((s) => s.setWordCount);
-  const setPunctuation = useTypingConfig((s) => s.setPunctuation);
-  const setNumbers = useTypingConfig((s) => s.setNumbers);
-
-  // Session
-  const [target, setTarget] = useState<string>(() => {
-    const c = useTypingConfig.getState();
-    return buildTarget(c.mode, c.timeSec, c.wordCount, c.punctuation, c.numbers);
-  });
   const [typed, setTyped] = useState('');
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [elapsedMs, setElapsedMs] = useState(0);
   const [totalKeystrokes, setTotalKeystrokes] = useState(0);
   const [correctKeystrokes, setCorrectKeystrokes] = useState(0);
   const [backspaces, setBackspaces] = useState(0);
@@ -97,10 +54,8 @@ export function TypingTestPage() {
   const [caret, setCaret] = useState<CaretPosition>({ left: 0, top: 0, height: 0 });
   const [scrollOffset, setScrollOffset] = useState(0);
   const [resizeTick, setResizeTick] = useState(0);
-  const [isRepeat, setIsRepeat] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
 
-  // Refs mirroring state for use inside the timer interval.
   const totalRef = useRef(0);
   const correctRef = useRef(0);
   const backspacesRef = useRef(0);
@@ -121,7 +76,16 @@ export function TypingTestPage() {
     typedRef.current = typed;
   }, [totalKeystrokes, correctKeystrokes, backspaces, typed]);
 
-  // Persist a completed session for logged-in users (guests stay local-only).
+  const saveMutation = useMutation({
+    mutationFn: createSession,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      void queryClient.invalidateQueries({ queryKey: ['learning-profile'] });
+    },
+  });
+
+  // Save a completed drill for logged-in users, tagged so history can tell it
+  // apart from a normal test.
   useEffect(() => {
     if (result && user && !savedRef.current) {
       savedRef.current = true;
@@ -130,6 +94,7 @@ export function TypingTestPage() {
         accuracy: Number(result.accuracy.toFixed(1)),
         backspaces: result.backspaces,
         mistakes: result.mistypedWords,
+        tags: ['drill'],
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,10 +109,12 @@ export function TypingTestPage() {
       const text = typedRef.current;
       const stats = countCharStats(target, text);
 
-      // Capture a final data point covering the last partial second.
       const finalT = Math.max(1, Math.round(durationMs / 1000));
       const cumulativeIncorrect = totalRef.current - correctRef.current;
-      const trailingErrors = Math.max(0, cumulativeIncorrect - prevIncorrectRef.current);
+      const trailingErrors = Math.max(
+        0,
+        cumulativeIncorrect - prevIncorrectRef.current,
+      );
       prevIncorrectRef.current = cumulativeIncorrect;
       const finalSample: WpmSample = {
         t: finalT,
@@ -176,27 +143,28 @@ export function TypingTestPage() {
         incorrectChars: stats.incorrect,
         mistypedWords: findMistypedWords(target, text),
         durationMs,
-        testType: mode === 'time' ? `time ${timeSec}s` : `words ${wordCount}`,
+        testType: 'drill',
         samples: [...samplesRef.current],
       });
     },
-    [target, mode, timeSec, wordCount],
+    [target],
   );
 
-  // Live timer: tick, sample wpm per second, and end timed tests.
+  // Sample wpm per second while typing (drills end when fully typed, not on time).
   useEffect(() => {
     if (!isActive || startTime === null) {
       return;
     }
     const id = window.setInterval(() => {
       const elapsed = Date.now() - startTime;
-      setElapsedMs(elapsed);
-
       const second = Math.floor(elapsed / 1000);
       if (second > lastSecondRef.current) {
         lastSecondRef.current = second;
         const cumulativeIncorrect = totalRef.current - correctRef.current;
-        const errors = Math.max(0, cumulativeIncorrect - prevIncorrectRef.current);
+        const errors = Math.max(
+          0,
+          cumulativeIncorrect - prevIncorrectRef.current,
+        );
         prevIncorrectRef.current = cumulativeIncorrect;
         samplesRef.current.push({
           t: second,
@@ -205,13 +173,9 @@ export function TypingTestPage() {
           errors,
         });
       }
-
-      if (mode === 'time' && elapsed >= timeSec * 1000) {
-        finalize(timeSec * 1000);
-      }
     }, 100);
     return () => window.clearInterval(id);
-  }, [isActive, startTime, mode, timeSec, finalize]);
+  }, [isActive, startTime]);
 
   // Position the caret + scroll the lines to follow the active character.
   useLayoutEffect(() => {
@@ -225,12 +189,8 @@ export function TypingTestPage() {
     if (!el) {
       return;
     }
-
-    // Keep one line above the active line visible.
     const lineHeight = el.offsetHeight || 1;
-    const nextScroll = Math.max(0, el.offsetTop - lineHeight);
-    setScrollOffset(nextScroll);
-
+    setScrollOffset(Math.max(0, el.offsetTop - lineHeight));
     const charRect = el.getBoundingClientRect();
     const viewportRect = viewport.getBoundingClientRect();
     const atEnd = typed.length >= target.length;
@@ -257,13 +217,11 @@ export function TypingTestPage() {
 
   useEffect(() => {
     focusInput();
-  }, [target, focusInput]);
+  }, [focusInput]);
 
   useEffect(() => {
     function handleKeydown(event: WindowEventMap['keydown']) {
       setCapsLock(event.getModifierState('CapsLock'));
-      // When the input has lost focus (overlay showing), the first key should only
-      // refocus, not type or start the test. Swallow it unless it's a browser shortcut.
       if (!doneRef.current && !isFocused) {
         if (!event.ctrlKey && !event.metaKey && !event.altKey) {
           event.preventDefault();
@@ -275,18 +233,15 @@ export function TypingTestPage() {
     return () => window.removeEventListener('keydown', handleKeydown);
   }, [isFocused, focusInput]);
 
-  const startSession = useCallback((nextTarget: string, repeated: boolean) => {
+  const restart = useCallback(() => {
     doneRef.current = false;
     savedRef.current = false;
     samplesRef.current = [];
     lastSecondRef.current = 0;
     prevIncorrectRef.current = 0;
     charRefs.current = [];
-    setTarget(nextTarget);
-    setIsRepeat(repeated);
     setTyped('');
     setStartTime(null);
-    setElapsedMs(0);
     setTotalKeystrokes(0);
     setCorrectKeystrokes(0);
     setBackspaces(0);
@@ -295,46 +250,10 @@ export function TypingTestPage() {
     window.requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
-  const nextTest = useCallback(() => {
-    startSession(buildTarget(mode, timeSec, wordCount, punctuation, numbers), false);
-  }, [startSession, mode, timeSec, wordCount, punctuation, numbers]);
-
-  const repeatTest = useCallback(() => {
-    startSession(target, true);
-  }, [startSession, target]);
-
-  function chooseMode(nextMode: Mode) {
-    setMode(nextMode);
-    startSession(buildTarget(nextMode, timeSec, wordCount, punctuation, numbers), false);
-  }
-
-  function chooseAmount(value: number) {
-    if (mode === 'time') {
-      setTimeSec(value);
-      startSession(buildTarget('time', value, wordCount, punctuation, numbers), false);
-    } else {
-      setWordCount(value);
-      startSession(buildTarget('words', timeSec, value, punctuation, numbers), false);
-    }
-  }
-
-  function togglePunctuation() {
-    const next = !punctuation;
-    setPunctuation(next);
-    startSession(buildTarget(mode, timeSec, wordCount, next, numbers), false);
-  }
-
-  function toggleNumbers() {
-    const next = !numbers;
-    setNumbers(next);
-    startSession(buildTarget(mode, timeSec, wordCount, punctuation, next), false);
-  }
-
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     if (isComplete) {
       return;
     }
-
     let next = event.target.value;
     if (next.length > target.length) {
       next = next.slice(0, target.length);
@@ -343,7 +262,6 @@ export function TypingTestPage() {
     const now = Date.now();
     if (startTime === null) {
       setStartTime(now);
-      setElapsedMs(0);
     }
 
     const delta = diffInput(target, typed, next);
@@ -356,8 +274,8 @@ export function TypingTestPage() {
     setBackspaces(newBackspaces);
     setTyped(next);
 
-    // Words mode completes when the whole stream is typed.
-    if (mode === 'words' && next.length >= target.length) {
+    // The drill ends when the whole passage is typed.
+    if (next.length >= target.length) {
       const durationMs = now - (startTime ?? now);
       typedRef.current = next;
       correctRef.current = newCorrect;
@@ -370,90 +288,39 @@ export function TypingTestPage() {
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Tab') {
       event.preventDefault();
-      nextTest();
+      restart();
     }
   }
 
-  const amountOptions = mode === 'time' ? TIME_OPTIONS : WORD_OPTIONS;
-  const activeAmount = mode === 'time' ? timeSec : wordCount;
-
-  const remaining = Math.max(0, timeSec - Math.floor(elapsedMs / 1000));
   const totalWords = target.split(' ').length;
-  const typedWords = typed.length === 0 ? 0 : target.slice(0, typed.length).split(' ').filter(Boolean).length;
+  const typedWords =
+    typed.length === 0
+      ? 0
+      : target.slice(0, typed.length).split(' ').filter(Boolean).length;
 
   return (
-    <div className="mx-auto max-w-4xl">
-      {(justSignedUp || justLoggedIn) && user && !welcomeDismissed && (
-        <Toast
-          onClose={() => setWelcomeDismissed(true)}
-          message={
-            <>
-              {justSignedUp ? 'Welcome aboard, ' : 'Welcome back, '}
-              <span className="font-semibold">{user.name}</span>
-              {justSignedUp
-                ? '. Start your first test below.'
-                : '. Ready for a warm-up?'}
-            </>
-          }
-        />
-      )}
-      {milestoneToast && (
-        <Toast
-          onClose={() => setMilestoneToast(null)}
-          message={
-            <>
-              New milestone:{' '}
-              <span className="font-semibold">{milestoneLabel(milestoneToast)}</span>
-            </>
-          }
-        />
-      )}
+    <div>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-mono text-xs uppercase tracking-widest text-muted">
+            Drill
+          </p>
+          <h2 className="truncate font-heading text-xl font-semibold text-foreground">
+            {exercise.title}
+          </h2>
+        </div>
+        <Button variant="ghost" onClick={onExit} aria-label="Cancel drill">
+          <X className="size-4" />
+          Cancel
+        </Button>
+      </div>
+
       {!isComplete && (
         <>
-          {/* Config bar */}
-          <div className="mb-12 flex justify-center">
-            <div className="flex items-center gap-1 rounded-xl border border-border bg-card/70 px-2 py-1.5 font-mono text-sm shadow-md backdrop-blur-sm">
-              <TabButton active={mode === 'time'} onClick={() => chooseMode('time')}>
-                time
-              </TabButton>
-              <TabButton active={mode === 'words'} onClick={() => chooseMode('words')}>
-                words
-              </TabButton>
-              <span className="mx-2 h-5 w-px bg-border" />
-              {amountOptions.map((value) => (
-                <TabButton
-                  key={value}
-                  active={activeAmount === value}
-                  onClick={() => chooseAmount(value)}
-                >
-                  {value}
-                </TabButton>
-              ))}
-              <span className="mx-2 h-5 w-px bg-border" />
-              <TabButton active={punctuation} onClick={togglePunctuation}>
-                punctuation
-              </TabButton>
-              <TabButton active={numbers} onClick={toggleNumbers}>
-                numbers
-              </TabButton>
-            </div>
-          </div>
-
-          {/* Live counter */}
           <div className="mb-4 flex h-8 items-center gap-3 font-mono text-2xl font-medium text-accent">
-            {isActive
-              ? mode === 'time'
-                ? remaining
-                : `${typedWords}/${totalWords}`
-              : ''}
-            {isRepeat && (
-              <span className="rounded bg-accent/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent">
-                repeated
-              </span>
-            )}
+            {isActive ? `${typedWords}/${totalWords}` : ''}
           </div>
 
-          {/* Caps Lock warning */}
           {capsLock && (
             <div className="mb-4 flex justify-center">
               <span className="inline-flex items-center gap-2 rounded-lg bg-error/15 px-3 py-1.5 font-mono text-sm font-semibold text-error">
@@ -475,7 +342,6 @@ export function TypingTestPage() {
             </div>
           )}
 
-          {/* Typing surface */}
           <div
             className="relative cursor-text"
             onMouseDown={(e) => {
@@ -545,114 +411,47 @@ export function TypingTestPage() {
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
-              aria-label="Typing input"
+              aria-label="Drill typing input"
               className="absolute inset-0 h-full w-full cursor-text opacity-0"
             />
           </div>
 
-          {/* Restart hint */}
           <div className="mt-10 flex justify-center">
             <span className="font-mono text-xs text-muted">
-              <kbd className="rounded border border-border px-1.5 py-0.5">Tab</kbd> to restart
+              <kbd className="rounded border border-border px-1.5 py-0.5">Tab</kbd>{' '}
+              to restart this drill
             </span>
           </div>
         </>
       )}
 
-      {/* Results */}
       {result && (
         <Results
           result={result}
           actions={
             <>
-              <button
-                type="button"
-                onClick={nextTest}
-                title="Next test (new words)"
-                aria-label="Next test"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-elevated text-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={repeatTest}
-                title="Repeat test (same words)"
-                aria-label="Repeat test"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-elevated text-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                >
-                  <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-                  <path d="M3 3v5h5" />
-                </svg>
-              </button>
+              <Button onClick={restart}>
+                <RotateCcw className="size-4" />
+                Restart drill
+              </Button>
+              <Button variant="secondary" onClick={onExit}>
+                Done
+              </Button>
             </>
           }
           footer={
             user ? (
               <span className="text-sm text-muted">
                 {saveMutation.isError
-                  ? 'Could not save this session'
+                  ? 'Could not save this drill'
                   : saveMutation.isPending
                     ? 'Saving…'
                     : 'Saved to your history'}
               </span>
-            ) : (
-              <Link
-                to="/register"
-                className="text-sm font-medium text-accent hover:underline"
-              >
-                Sign up to save your results
-              </Link>
-            )
+            ) : null
           }
         />
       )}
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        'rounded-lg px-3 py-1.5 transition-colors duration-200 cursor-pointer ' +
-        (active
-          ? 'bg-elevated text-accent shadow-sm'
-          : 'text-muted hover:text-foreground')
-      }
-    >
-      {children}
-    </button>
   );
 }

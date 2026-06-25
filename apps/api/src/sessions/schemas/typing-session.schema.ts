@@ -22,6 +22,10 @@ export class TypingSession {
 
   @Prop({ type: [String], default: [] })
   mistakes!: string[];
+
+  // Labels for the session, e.g. ["drill"] for a generated-exercise run.
+  @Prop({ type: [String], default: [] })
+  tags!: string[];
 }
 
 export const TypingSessionSchema = SchemaFactory.createForClass(TypingSession);

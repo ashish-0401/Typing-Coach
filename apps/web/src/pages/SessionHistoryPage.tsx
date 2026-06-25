@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchSessions } from '../lib/api';
 import type { TypingSession } from '../lib/api';
+import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -60,7 +61,12 @@ export function SessionHistoryPage() {
                     className="transition-colors hover:bg-elevated/50"
                   >
                     <td className="px-5 py-3.5 text-foreground">
-                      {formatDate(session.date)}
+                      <span className="inline-flex items-center gap-2">
+                        {formatDate(session.date)}
+                        {session.tags?.includes('drill') && (
+                          <Badge variant="accent">drill</Badge>
+                        )}
+                      </span>
                     </td>
                     <td className="px-5 py-3.5 font-semibold text-accent">
                       {session.wpm}

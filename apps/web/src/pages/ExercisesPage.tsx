@@ -15,6 +15,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
+import { DrillRunner } from '../components/typing/DrillRunner';
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard'];
 
@@ -72,6 +73,7 @@ export function ExercisesPage() {
 
   const [selectedWeakness, setSelectedWeakness] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<ExerciseDifficulty>('medium');
+  const [activeDrill, setActiveDrill] = useState<GeneratedExercise | null>(null);
 
   // Default to the top weakness until the user picks one, derived rather than
   // stored in state (avoids a setState-in-effect cascade).
@@ -97,14 +99,26 @@ export function ExercisesPage() {
   }
 
   function practice(exercise: GeneratedExercise) {
-    navigate('/practice', {
-      state: { exerciseText: exercise.text, exerciseTitle: exercise.title },
-    });
+    setActiveDrill(exercise);
   }
 
   const profileLoading = profileQuery.isPending || diagnosisQuery.isPending;
   const hasWeaknesses = weaknessOptions.length > 0;
   const exercises = exercisesQuery.data ?? [];
+
+  // Run a drill in place, taking over the page until the user exits.
+  if (activeDrill) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <Card>
+          <DrillRunner
+            exercise={activeDrill}
+            onExit={() => setActiveDrill(null)}
+          />
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
