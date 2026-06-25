@@ -232,3 +232,31 @@ export async function runDiagnosis(): Promise<Diagnosis> {
   return (await response.json()) as Diagnosis;
 }
 
+export interface CoachMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
+
+export async function fetchCoachMessages(): Promise<CoachMessage[]> {
+  const response = await fetch(`${API_URL}/coach/messages`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as CoachMessage[];
+}
+
+export async function sendCoachMessage(text: string): Promise<CoachMessage> {
+  const response = await fetch(`${API_URL}/coach/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ text }),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as CoachMessage;
+}
+
