@@ -9,6 +9,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { TypingTestPage } from './pages/TypingTestPage';
 import { SessionHistoryPage } from './pages/SessionHistoryPage';
 import { LearningProfilePage } from './pages/LearningProfilePage';
+import { CoachPage } from './pages/CoachPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 export const router = createBrowserRouter([
@@ -39,6 +40,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <LearningProfilePage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/coach',
+        element: (
+          <RequireAuth>
+            <CoachPage />
           </RequireAuth>
         ),
       },
