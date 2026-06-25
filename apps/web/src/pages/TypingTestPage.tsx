@@ -7,6 +7,7 @@ import type { SessionResult, WpmSample } from '../components/typing/Results';
 import { useAuth } from '../lib/auth';
 import { createSession, type Milestone } from '../lib/api';
 import { milestoneLabel, pickTopMilestone } from '../lib/milestones';
+import { configTag } from '../lib/sessionTags';
 import {
   calculateAccuracy,
   calculateWpm,
@@ -130,6 +131,7 @@ export function TypingTestPage() {
         accuracy: Number(result.accuracy.toFixed(1)),
         backspaces: result.backspaces,
         mistakes: result.mistypedWords,
+        tags: [configTag(mode, timeSec, wordCount)],
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
