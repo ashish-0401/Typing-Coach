@@ -164,4 +164,13 @@ describe('parseExerciseResponse', () => {
       'field',
     ]);
   });
+
+  it('accepts a run-on passage with no end punctuation', () => {
+    const raw = JSON.stringify({
+      title: 'Foreign Policy',
+      text: 'The foreign policy chief believed neither the neighbor nor the foreign aide could receive the brief in time to relieve the siege so the chief decided to retrieve the foreign policy guide and review each piece of evidence',
+      targetWords: ['receive', 'relieve', 'foreign'],
+    });
+    expect(parseExerciseResponse(raw).text).toContain('foreign policy chief');
+  });
 });

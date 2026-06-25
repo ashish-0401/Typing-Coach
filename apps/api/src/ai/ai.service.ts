@@ -5,6 +5,8 @@ export interface AiCompletionRequest {
   prompt: string;
   /** When true, ask the model to reply with a single JSON object. */
   json?: boolean;
+  /** Optional cap on completion tokens, so long JSON outputs have room to finish. */
+  maxTokens?: number;
 }
 
 /** A single turn in a conversation. */

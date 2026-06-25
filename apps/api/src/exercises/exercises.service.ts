@@ -29,6 +29,9 @@ export interface GenerateExerciseInput {
 const DEFAULT_DIFFICULTY: Difficulty = 'medium';
 // How many diagnosis patterns to pass as extra context for the passage.
 const MAX_PATTERNS = 5;
+// Generous completion budget so the JSON passage always finishes (otherwise
+// Groq's json mode can truncate a long passage and return json_validate_failed).
+const MAX_OUTPUT_TOKENS = 1024;
 
 @Injectable()
 export class ExercisesService {
@@ -77,7 +80,12 @@ export class ExercisesService {
 
     let raw: string;
     try {
-      raw = await this.ai.complete({ system, prompt, json: true });
+      raw = await this.ai.complete({
+        system,
+        prompt,
+        json: true,
+        maxTokens: MAX_OUTPUT_TOKENS,
+      });
     } catch (error) {
       this.logger.warn(
         `AI completion failed: ${error instanceof Error ? error.message : String(error)}`,

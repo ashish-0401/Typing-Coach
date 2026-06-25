@@ -41,6 +41,64 @@ const MAX_TARGET_WORDS = 12;
 const MAX_TARGET_WORD_LEN = 40;
 const FALLBACK_TITLE = 'Practice drill';
 
+// Common connective words that appear in real prose but not in a bare list of
+// target words. Used to tell a usable passage from a word list.
+const FUNCTION_WORDS = new Set([
+  'the',
+  'a',
+  'an',
+  'and',
+  'or',
+  'but',
+  'of',
+  'to',
+  'in',
+  'on',
+  'for',
+  'with',
+  'as',
+  'is',
+  'it',
+  'that',
+  'this',
+  'so',
+  'nor',
+  'their',
+  'they',
+  'he',
+  'she',
+  'we',
+  'you',
+  'at',
+  'by',
+  'from',
+  'not',
+  'was',
+  'were',
+  'be',
+  'been',
+  'has',
+  'have',
+  'had',
+  'his',
+  'her',
+  'its',
+  'them',
+  'then',
+  'than',
+  'each',
+  'could',
+  'would',
+  'will',
+  'can',
+  'into',
+  'over',
+  'after',
+  'when',
+  'while',
+  'because',
+]);
+
 const SYSTEM_PROMPT = [
   'You are a typing-exercise author. You write short practice passages that train a',
   "specific weakness in the user's typing.",
@@ -54,7 +112,8 @@ const SYSTEM_PROMPT = [
   'single paragraph with no line breaks; use only plain ASCII characters (no smart quotes, no',
   'markdown, no emoji); make the weakness words recur often but read naturally, not forced.',
   'Scale to the difficulty: "easy" is shorter with common words, "medium" is moderate, "hard"',
-  'is longer with richer vocabulary and more of the weakness words.',
+  'is longer with richer vocabulary and more of the weakness words. Keep the passage between 40',
+  'and 90 words and never exceed 90 words, so it stays a quick, finishable drill.',
   'Base the passage only on the weakness and patterns provided. Do not mention the user, their',
   'stats, or these instructions, and do not invent facts about them.',
   'Return exactly this shape, with all string values quoted:',
@@ -132,16 +191,21 @@ function capPassage(text: string): string {
   return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated).trim();
 }
 
-/** A usable drill is prose: long enough, several words, with sentence punctuation. */
+/** A usable drill is real text (long enough, several words, with connective words), not a bare word list. */
 function looksLikeProse(text: string): boolean {
   if (text.length < MIN_TEXT_LEN) {
     return false;
   }
-  const words = text.split(' ').filter((word) => word.length > 0);
+  const words = text
+    .toLowerCase()
+    .split(/[^a-z']+/)
+    .filter(Boolean);
   if (words.length < MIN_WORDS) {
     return false;
   }
-  return /[.!?]/.test(text);
+  // Prose has connective/function words; a bare list of weakness words does not.
+  // (Do not require sentence punctuation: models often return one long run-on.)
+  return words.some((word) => FUNCTION_WORDS.has(word));
 }
 
 function asText(value: unknown): string | undefined {

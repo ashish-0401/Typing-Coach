@@ -39,7 +39,7 @@ export class GroqAiService extends AiService {
       messages.push({ role: 'system', content: request.system });
     }
     messages.push({ role: 'user', content: request.prompt });
-    return this.send(messages, request.json ?? false);
+    return this.send(messages, request.json ?? false, request.maxTokens);
   }
 
   async chat(request: AiChatRequest): Promise<string> {
@@ -53,7 +53,11 @@ export class GroqAiService extends AiService {
     return this.send(messages, false);
   }
 
-  private async send(messages: GroqMessage[], json: boolean): Promise<string> {
+  private async send(
+    messages: GroqMessage[],
+    json: boolean,
+    maxTokens?: number,
+  ): Promise<string> {
     if (!this.apiKey) {
       throw new AiError('GROQ_API_KEY is not configured');
     }
@@ -73,6 +77,7 @@ export class GroqAiService extends AiService {
           model: this.model,
           messages,
           temperature: 0.2,
+          ...(maxTokens ? { max_tokens: maxTokens } : {}),
           ...(json ? { response_format: { type: 'json_object' } } : {}),
         }),
         signal: controller.signal,

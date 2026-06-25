@@ -136,4 +136,29 @@ describe('GroqAiService', () => {
       AiError,
     );
   });
+
+  it('passes maxTokens through as max_tokens', async () => {
+    let capturedBody = '';
+    const fetchMock = jest
+      .fn()
+      .mockImplementation((_url: string, init: RequestInit) => {
+        capturedBody = init.body as string;
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({ choices: [{ message: { content: 'ok' } }] }),
+        } as unknown as Response);
+      });
+    global.fetch = fetchMock;
+
+    const service = new GroqAiService(configWith({ GROQ_API_KEY: 'k' }));
+    await service.complete({ prompt: 'hi', json: true, maxTokens: 1024 });
+
+    const body = JSON.parse(capturedBody) as {
+      max_tokens?: number;
+      response_format?: unknown;
+    };
+    expect(body.max_tokens).toBe(1024);
+    expect(body.response_format).toEqual({ type: 'json_object' });
+  });
 });
