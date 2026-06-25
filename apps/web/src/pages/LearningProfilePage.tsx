@@ -22,6 +22,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
+import { SpotlightCard } from '../components/ui/SpotlightCard';
 import { StatCard } from '../components/ui/StatCard';
 import { Reveal, Stagger, StaggerItem } from '../components/ui/motion';
 
@@ -70,17 +71,23 @@ function DiagnosisView({
   const sessionLabel = diagnosis.basedOnSessions === 1 ? 'session' : 'sessions';
   return (
     <div className="mt-5 space-y-5">
-      <p className="text-base leading-relaxed text-foreground">
+      <p className="text-lg leading-relaxed text-foreground">
         {diagnosis.summary}
       </p>
       <p className="text-sm leading-relaxed text-muted">{diagnosis.reasoning}</p>
 
-      {diagnosis.patterns.length > 0 && (
-        <ChipRow label="Patterns" items={diagnosis.patterns} variant="accent" />
-      )}
-      {profile.strengths.length > 0 && (
-        <ChipRow label="Strengths" items={profile.strengths} variant="success" />
-      )}
+      <div className="grid grid-cols-2 gap-5">
+        {diagnosis.patterns.length > 0 && (
+          <ChipRow label="Patterns" items={diagnosis.patterns} variant="accent" />
+        )}
+        {profile.strengths.length > 0 && (
+          <ChipRow
+            label="Strengths"
+            items={profile.strengths}
+            variant="success"
+          />
+        )}
+      </div>
       {profile.learningStyle && (
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-muted">
@@ -116,18 +123,14 @@ function AiInsightsCard({
   const enoughSessions = profile.totalSessions >= MIN_SESSIONS_TO_ANALYZE;
 
   return (
-    <Card className="relative overflow-hidden ring-1 ring-primary/10">
-      <div
-        className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
-        aria-hidden
-      />
-      <div className="relative flex items-start justify-between gap-4">
+    <SpotlightCard className="ring-1 ring-primary/10">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-accent ring-1 ring-primary/15">
+          <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-accent ring-1 ring-primary/15">
             <Sparkles className="size-5" />
           </span>
           <div>
-            <h2 className="font-heading text-lg font-semibold text-foreground">
+            <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
               AI insights
             </h2>
             <p className="mt-0.5 text-sm text-muted">
@@ -141,31 +144,27 @@ function AiInsightsCard({
         </Button>
       </div>
 
-      {analyzeError && (
-        <p className="relative mt-4 text-sm text-error">{analyzeError}</p>
-      )}
+      {analyzeError && <p className="mt-4 text-sm text-error">{analyzeError}</p>}
 
       {analyzing ? (
-        <p className="relative mt-5 text-sm text-muted">
+        <p className="mt-5 text-sm text-muted">
           Reading your recent sessions, this can take a few seconds.
         </p>
       ) : !enoughSessions ? (
-        <p className="relative mt-5 text-sm text-muted">
+        <p className="mt-5 text-sm text-muted">
           Finish a few tests first, then I can analyze your typing.
         </p>
       ) : diagnosis ? (
         <DiagnosisView profile={profile} diagnosis={diagnosis} />
       ) : diagnosisLoading ? (
-        <p className="relative mt-5 text-sm text-muted">
-          Loading your latest insight...
-        </p>
+        <p className="mt-5 text-sm text-muted">Loading your latest insight...</p>
       ) : !analyzeError ? (
-        <p className="relative mt-5 text-sm text-muted">
+        <p className="mt-5 text-sm text-muted">
           No analysis yet. Tap Analyze my typing and I&apos;ll spot the patterns
           in your mistakes.
         </p>
       ) : null}
-    </Card>
+    </SpotlightCard>
   );
 }
 
@@ -208,7 +207,7 @@ export function LearningProfilePage() {
             <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
         </div>
-        <Skeleton className="mt-6 h-40 rounded-2xl" />
+        <Skeleton className="mt-4 h-44 rounded-2xl" />
       </>
     );
   }
@@ -290,8 +289,8 @@ export function LearningProfilePage() {
       </Stagger>
 
       {profile.plateauDetected && (
-        <Reveal delay={0.05}>
-          <Card className="mt-6 border-accent/30 bg-accent/5">
+        <Reveal>
+          <Card className="mt-4 border-accent/30 bg-accent/5">
             <div className="flex items-start gap-3">
               <TrendingDown className="size-5 shrink-0 text-accent" />
               <div>
@@ -309,8 +308,8 @@ export function LearningProfilePage() {
         </Reveal>
       )}
 
-      <Reveal delay={0.1}>
-        <div className="mt-6">
+      <Reveal>
+        <div className="mt-4">
           <AiInsightsCard
             profile={profile}
             diagnosis={diagnosisQuery.data ?? null}
@@ -324,63 +323,63 @@ export function LearningProfilePage() {
         </div>
       </Reveal>
 
-      <Reveal delay={0.15}>
-        <Card className="mt-6">
-          <h2 className="font-heading text-lg font-semibold text-foreground">
-            Weaknesses
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            The words you mistype most often.
-          </p>
-          {profile.primaryWeaknesses.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">
-              No recurring mistakes yet. Clean typing.
-            </p>
-          ) : (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {profile.primaryWeaknesses.map((word) => (
-                <Badge key={word} variant="mono">
-                  {word}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </Card>
-      </Reveal>
-
-      <Reveal delay={0.2}>
-        <Card className="mt-6">
-          <h2 className="font-heading text-lg font-semibold text-foreground">
-            Milestones
-          </h2>
-          {profile.milestones.length === 0 ? (
+      <Reveal>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <Card>
+            <h2 className="font-heading text-lg font-semibold text-foreground">
+              Weaknesses
+            </h2>
             <p className="mt-1 text-sm text-muted">
-              Achievements like personal bests and streaks will appear here as you
-              reach them.
+              The words you mistype most often.
             </p>
-          ) : (
-            <ul className="mt-4 space-y-3">
-              {profile.milestones.map((milestone, index) => (
-                <li
-                  key={`${milestone.type}-${milestone.value}-${index}`}
-                  className="flex items-center gap-3"
-                >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-accent ring-1 ring-primary/15">
-                    <Award className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-sm text-foreground">
-                      {milestoneLabel(milestone)}
-                    </p>
-                    <p className="font-mono text-xs text-muted">
-                      {formatDate(milestone.achievedAt)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+            {profile.primaryWeaknesses.length === 0 ? (
+              <p className="mt-4 text-sm text-muted">
+                No recurring mistakes yet. Clean typing.
+              </p>
+            ) : (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {profile.primaryWeaknesses.map((word) => (
+                  <Badge key={word} variant="mono">
+                    {word}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <h2 className="font-heading text-lg font-semibold text-foreground">
+              Milestones
+            </h2>
+            {profile.milestones.length === 0 ? (
+              <p className="mt-1 text-sm text-muted">
+                Achievements like personal bests and streaks will appear here as
+                you reach them.
+              </p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {profile.milestones.map((milestone, index) => (
+                  <li
+                    key={`${milestone.type}-${milestone.value}-${index}`}
+                    className="flex items-center gap-3"
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-accent ring-1 ring-primary/15">
+                      <Award className="size-5" />
+                    </span>
+                    <div>
+                      <p className="text-sm text-foreground">
+                        {milestoneLabel(milestone)}
+                      </p>
+                      <p className="font-mono text-xs text-muted">
+                        {formatDate(milestone.achievedAt)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
       </Reveal>
     </>
   );
