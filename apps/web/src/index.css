@@ -100,6 +100,16 @@ body {
   }
 }
 
+/* Infinite marquee. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 /* Typing caret: smooth glide between characters + idle blink. */
 @keyframes typing-caret-blink {
   0%,

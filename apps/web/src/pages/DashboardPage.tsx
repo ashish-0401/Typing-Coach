@@ -21,6 +21,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { Sparkline } from '../components/ui/Sparkline';
 import { SpotlightCard } from '../components/ui/SpotlightCard';
 import { StatCard } from '../components/ui/StatCard';
+import { Marquee } from '../components/ui/Marquee';
 import { AnimatedNumber, Reveal, Stagger, StaggerItem } from '../components/ui/motion';
 
 function shortDate(iso: string): string {
@@ -141,6 +142,19 @@ export function DashboardPage() {
   return (
     <>
       {heading}
+
+      <Marquee
+        items={[
+          'Precision',
+          'Speed',
+          'Accuracy',
+          'Consistency',
+          'Rhythm',
+          'Focus',
+          'Flow',
+        ]}
+        className="mb-6 border-y border-border/60 py-2.5"
+      />
 
       <Stagger className="grid grid-cols-4 auto-rows-fr gap-4">
         <StaggerItem className="col-span-2 row-span-2">
