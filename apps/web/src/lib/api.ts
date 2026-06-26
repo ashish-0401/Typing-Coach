@@ -50,6 +50,16 @@ async function parseError(response: Response): Promise<string> {
   return `Request failed with status ${response.status}`;
 }
 
+/**
+ * Parse a JSON response that may legitimately be empty. NestJS sends an empty
+ * body (not the text "null") when a handler returns null, so calling
+ * response.json() directly would throw. Returns null for an empty body.
+ */
+async function parseJsonOrNull<T>(response: Response): Promise<T | null> {
+  const text = await response.text();
+  return text.length > 0 ? (JSON.parse(text) as T) : null;
+}
+
 async function postAuth(
   path: string,
   body: Credentials | RegisterInput,
@@ -251,7 +261,7 @@ export async function fetchLatestDiagnosis(): Promise<Diagnosis | null> {
   if (!response.ok) {
     throw new Error(await parseError(response));
   }
-  return (await response.json()) as Diagnosis | null;
+  return parseJsonOrNull<Diagnosis>(response);
 }
 
 export async function runDiagnosis(): Promise<Diagnosis> {
@@ -386,7 +396,7 @@ export async function fetchLatestPlan(): Promise<TrainingPlan | null> {
   if (!response.ok) {
     throw new Error(await parseError(response));
   }
-  return (await response.json()) as TrainingPlan | null;
+  return parseJsonOrNull<TrainingPlan>(response);
 }
 
 export async function fetchPlans(): Promise<TrainingPlan[]> {
