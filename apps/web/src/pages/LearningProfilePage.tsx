@@ -101,6 +101,15 @@ function DiagnosisView({
         Based on {diagnosis.basedOnSessions} {sessionLabel} &middot; analyzed{' '}
         {formatDate(diagnosis.createdAt)}
       </p>
+
+      <div className="flex flex-wrap gap-3 pt-1">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/plan">Build a training plan</Link>
+        </Button>
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/exercises">Practice a weak spot</Link>
+        </Button>
+      </div>
     </div>
   );
 }

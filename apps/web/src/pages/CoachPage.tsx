@@ -11,9 +11,9 @@ import { PageHeading } from '../components/ui/PageHeading';
 import { Textarea } from '../components/ui/Textarea';
 
 const SUGGESTIONS = [
-  'How am I doing?',
-  'What should I practice next?',
-  'What is my biggest weakness?',
+  'Why do I slow down on long words?',
+  'How do I stop repeating the same mistakes?',
+  'Should I push for speed or lock in accuracy?',
 ];
 
 const MAX_MESSAGE = 1000;
@@ -141,7 +141,7 @@ export function CoachPage() {
     <div className="mx-auto max-w-3xl">
       <PageHeading
         title="AI Coach"
-        subtitle="Ask about your progress, weak spots, or what to practice next."
+        subtitle="Ask the open-ended questions a chart can't answer. Your coach knows your history."
       />
 
       <Card className="flex flex-col p-0">
@@ -162,7 +162,8 @@ export function CoachPage() {
                 Your typing coach
               </h2>
               <p className="mt-1 text-sm text-muted">
-                Ask anything about your progress. Try one of these:
+                Numbers live on your Dashboard and Plan. Here, ask the why and
+                how. Try one:
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {SUGGESTIONS.map((question) => (
