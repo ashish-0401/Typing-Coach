@@ -2,8 +2,8 @@
 // Pulls from a free public quotes API (no key, CORS-enabled) and ALWAYS falls back
 // to a bundled set of original sentences, so the test never blocks on the network.
 
-const QUOTES_API =
-  'https://api.quotable.io/quotes/random?limit=3&minLength=60&maxLength=180';
+// DummyJSON: reliable, CORS-enabled, no key. Returns an array of 3 random quotes.
+const QUOTES_API = 'https://dummyjson.com/quotes/random/3';
 const FETCH_TIMEOUT_MS = 2500;
 const MAX_LEN = 600;
 const MIN_LEN = 40;
@@ -60,8 +60,8 @@ function normalizePassage(text: string): string {
   return capAtWord(ascii, MAX_LEN);
 }
 
-interface QuotableQuote {
-  content?: string;
+interface RandomQuote {
+  quote?: string;
 }
 
 /** A random bundled passage (instant, offline). */
@@ -94,10 +94,10 @@ export async function fetchProsePassage(): Promise<string> {
         `quotes API responded with status ${response.status}`,
       );
     }
-    const data = (await response.json()) as QuotableQuote[];
+    const data = (await response.json()) as RandomQuote[];
     const joined = Array.isArray(data)
       ? data
-          .map((quote) => quote.content ?? '')
+          .map((item) => item.quote ?? '')
           .filter(Boolean)
           .join(' ')
       : '';
