@@ -44,11 +44,6 @@ export function AppShell() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-7">
             <Link to="/" className="group flex items-center gap-3">
-              <img
-                src="/WazaKey.png"
-                alt="WazaKey"
-                className="h-9 w-9 rounded-lg ring-1 ring-border transition-transform duration-200 group-hover:scale-105"
-              />
               <span className="leading-tight">
                 <span className="block text-lg font-semibold tracking-tight">
                   <span className="text-foreground">Waza</span>

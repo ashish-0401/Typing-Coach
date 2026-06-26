@@ -8,21 +8,21 @@
 /* ---- Dark theme (default) ---- */
 :root {
   --background: #0b0b10;
-  --card: #131319;
-  --elevated: #1a1a22;
-  --border: #26262f;
+  --card: #14141b;
+  --elevated: #1c1c25;
+  --border: #30303c;
   --foreground: #f3f3f6;
-  --muted: #9a9aa7;
+  --muted: #a8a8b6;
   --faint: #3a3a45;
-  --primary: #4f46e5;
-  --primary-hover: #6157ec;
+  --primary: #6366f1;
+  --primary-hover: #7c75f5;
   --primary-foreground: #ffffff;
-  --accent: #8b80f9;
-  --accent-hover: #a99cfb;
+  --accent: #a896ff;
+  --accent-hover: #c2b6ff;
   --accent-foreground: #0b0b10;
   --success: #34d399;
   --error: #fb6f76;
-  --ring: #6d63f2;
+  --ring: #8b80f9;
 }
 
 /* ---- Light theme override ---- */
@@ -109,6 +109,48 @@ body {
   to {
     transform: translateX(-50%);
   }
+}
+
+/* Animated gradient for hero headlines: bright, luminous stops that stay
+   high-contrast on the near-black dark theme (no muddy mid-indigo). */
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.text-gradient-hero {
+  background-image: linear-gradient(
+    110deg,
+    var(--color-accent-hover) 0%,
+    var(--color-accent) 30%,
+    var(--color-ring) 62%,
+    var(--color-accent-hover) 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 7s ease-in-out infinite;
+}
+
+/* Gentle floating bob for ambient accents. */
+@keyframes float-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float-bob 6s ease-in-out infinite;
 }
 
 /* Typing caret: smooth glide between characters + idle blink. */

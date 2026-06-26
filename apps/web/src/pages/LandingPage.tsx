@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, useScroll, useSpring } from 'motion/react';
 import type { ReactNode } from 'react';
 import {
   ArrowDown,
   ArrowRight,
-  ArrowUpRight,
   Brain,
   LineChart,
   Sparkles,
   Target,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useAuth } from '../lib/auth';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -18,36 +18,36 @@ import { Marquee } from '../components/ui/Marquee';
 import { ScrambleText } from '../components/ui/ScrambleText';
 import { Sparkline } from '../components/ui/Sparkline';
 import { SpotlightCard } from '../components/ui/SpotlightCard';
-import { AnimatedNumber, Reveal } from '../components/ui/motion';
+import { AnimatedNumber } from '../components/ui/motion';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 function LandingNav() {
+  const user = useAuth((s) => s.user);
+
   return (
     <header className="absolute inset-x-0 top-0 z-30">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <Link to="/" className="flex items-center gap-3">
-          <img
-            src="/WazaKey.png"
-            alt="WazaKey"
-            className="h-9 w-9 rounded-lg ring-1 ring-border"
-          />
-          <span className="text-lg font-semibold tracking-tight">
-            <span className="text-foreground">Waza</span>
-            <span className="text-accent">Key</span>
-          </span>
+        <Link to="/" className="text-xl font-bold tracking-tight">
+          <span className="text-foreground">Waza</span>
+          <span className="text-accent">Key</span>
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link
-            to="/login"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
-          >
-            Log in
-          </Link>
-          <Button asChild size="sm">
-            <Link to="/practice">Start typing</Link>
-          </Button>
+          {user ? (
+            <Button asChild size="sm">
+              <Link to="/dashboard">Go to dashboard</Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild size="sm" variant="secondary">
+                <Link to="/login">Log in</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link to="/practice">Start typing</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -70,36 +70,75 @@ function Feature({
   flip?: boolean;
 }) {
   return (
-    <Reveal>
-      <div className="grid grid-cols-2 items-center gap-12">
-        <div className={flip ? 'order-2' : ''}>
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-sm text-muted">{index}</span>
-            <span className="h-px w-10 bg-border" />
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-accent ring-1 ring-primary/15">
-              <Icon className="size-4" />
-            </span>
-          </div>
-          <h3 className="mt-5 font-heading text-4xl font-bold tracking-tight text-foreground">
-            {title}
-          </h3>
-          <p className="mt-4 max-w-md text-lg leading-relaxed text-muted">
-            {body}
-          </p>
+    <div className="grid grid-cols-2 items-center gap-12">
+      <motion.div
+        initial={{ opacity: 0, x: flip ? 48 : -48 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, margin: '-15% 0px' }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className={flip ? 'order-2' : ''}
+      >
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-sm text-muted">{index}</span>
+          <span className="h-px w-10 bg-border" />
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-accent ring-1 ring-primary/15">
+            <Icon className="size-4" />
+          </span>
         </div>
-        <div className={flip ? 'order-1' : ''}>{visual}</div>
-      </div>
-    </Reveal>
+        <h3 className="mt-5 font-heading text-4xl font-bold tracking-tight text-foreground">
+          {title}
+        </h3>
+        <p className="mt-4 max-w-md text-lg leading-relaxed text-muted">
+          {body}
+        </p>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, x: flip ? -48 : 48, scale: 0.96 }}
+        whileInView={{ opacity: 1, x: 0, scale: 1 }}
+        viewport={{ once: true, margin: '-15% 0px' }}
+        transition={{ duration: 0.6, ease: EASE, delay: 0.08 }}
+        className={flip ? 'order-1' : ''}
+      >
+        {visual}
+      </motion.div>
+    </div>
   );
 }
 
 export function LandingPage() {
+  const user = useAuth((s) => s.user);
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 30,
+    mass: 0.3,
+  });
+
   return (
     <div className="relative min-h-screen overflow-x-hidden">
+      {/* Reading-progress bar. */}
+      <motion.div
+        aria-hidden
+        style={{ scaleX: progress }}
+        className="fixed inset-x-0 top-0 z-40 h-0.75 origin-left bg-linear-to-r from-accent via-primary to-accent"
+      />
       <LandingNav />
 
       {/* Hero */}
-      <section className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 pt-24">
+      <section className="relative isolate mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 pt-24">
+        {/* Ambient color glows that breathe for depth. */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -left-24 top-24 -z-10 size-136 rounded-full bg-primary/25 blur-[120px]"
+          animate={{ opacity: [0.35, 0.6, 0.35], scale: [1, 1.12, 1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -right-16 bottom-24 -z-10 size-104 rounded-full bg-accent/20 blur-[110px]"
+          animate={{ opacity: [0.3, 0.55, 0.3], scale: [1.05, 1, 1.05] }}
+          transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+        />
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -113,7 +152,7 @@ export function LandingPage() {
           <span className="block text-foreground">
             <ScrambleText text="Master your" />
           </span>
-          <span className="block bg-gradient-to-br from-accent via-primary to-accent bg-clip-text text-transparent">
+          <span className="text-gradient-hero block drop-shadow-[0_4px_30px_rgba(139,128,249,0.35)]">
             <ScrambleText text="keyboard." speed={0.8} />
           </span>
         </h1>
@@ -121,7 +160,7 @@ export function LandingPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE, delay: 0.5 }}
-          className="mt-8 max-w-xl text-lg leading-relaxed text-muted"
+          className="mt-8 max-w-xl text-lg leading-relaxed text-foreground/80"
         >
           A typing trainer with an AI coach that remembers every session, finds
           the words that trip you up, and trains you to fix them.
@@ -132,15 +171,39 @@ export function LandingPage() {
           transition={{ duration: 0.6, ease: EASE, delay: 0.65 }}
           className="mt-10 flex flex-wrap items-center gap-4"
         >
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="group hover:-translate-y-0.5">
             <Link to="/practice">
-              Start typing free <ArrowRight className="size-4" />
+              {user ? 'Start typing' : 'Start typing free'}
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="secondary">
-            <Link to="/register">Create account</Link>
+          <Button
+            asChild
+            size="lg"
+            variant="secondary"
+            className="hover:-translate-y-0.5"
+          >
+            <Link to={user ? '/dashboard' : '/login'}>
+              {user ? 'Go to dashboard' : 'Log in'}
+            </Link>
           </Button>
         </motion.div>
+        {!user && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: EASE, delay: 0.8 }}
+            className="mt-5 text-sm text-muted"
+          >
+            New here?{' '}
+            <Link
+              to="/register"
+              className="font-medium text-accent underline-offset-4 hover:underline"
+            >
+              Create a free account
+            </Link>
+          </motion.p>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -222,7 +285,7 @@ export function LandingPage() {
                   <p className="font-mono text-xs uppercase tracking-widest text-muted">
                     Best WPM
                   </p>
-                  <p className="bg-gradient-to-br from-accent to-primary bg-clip-text font-mono text-5xl font-bold tabular-nums text-transparent">
+                  <p className="bg-linear-to-br from-accent to-primary bg-clip-text font-mono text-5xl font-bold tabular-nums text-transparent">
                     <AnimatedNumber value={81} />
                   </p>
                 </div>
@@ -236,30 +299,6 @@ export function LandingPage() {
             </SpotlightCard>
           }
         />
-      </section>
-
-      {/* Final CTA */}
-      <section className="mx-auto max-w-6xl px-6 pb-32">
-        <Reveal>
-          <SpotlightCard className="overflow-hidden px-10 py-20 text-center">
-            <div
-              className="pointer-events-none absolute left-1/2 top-0 h-64 w-[40rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
-              aria-hidden
-            />
-            <h2 className="relative font-heading text-5xl font-bold tracking-tight text-foreground">
-              Ready to type faster?
-            </h2>
-            <p className="relative mx-auto mt-4 max-w-md text-lg text-muted">
-              No signup needed to try. Take a test and watch your coach get to
-              work.
-            </p>
-            <Button asChild size="lg" className="relative mt-8">
-              <Link to="/practice">
-                Start typing now <ArrowUpRight className="size-4" />
-              </Link>
-            </Button>
-          </SpotlightCard>
-        </Reveal>
       </section>
 
       <footer className="border-t border-border/60">

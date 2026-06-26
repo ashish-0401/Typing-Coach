@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
+import { useTheme } from '@/lib/theme';
+import { cn } from '@/lib/utils';
 
 const vertex = `
 attribute vec2 position;
@@ -12,6 +14,7 @@ const fragment = `
 precision highp float;
 uniform float uTime;
 uniform vec2 uResolution;
+uniform float uDark;
 
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -45,18 +48,37 @@ void main() {
   float t = uTime * 0.04;
   vec2 q = vec2(fbm(p + t), fbm(p + vec2(5.2, 1.3) - t * 0.8));
   float n = fbm(p + q * 1.9 + t);
-  float m = smoothstep(0.42, 1.0, n);
-  vec3 primary = vec3(0.31, 0.275, 0.898);
-  vec3 accent = vec3(0.545, 0.502, 0.976);
-  vec3 col = mix(primary, accent, smoothstep(0.5, 1.0, n));
-  float alpha = m * 0.5;
+  // Tighter threshold keeps the aurora as defined wisps instead of a flat haze.
+  float m = smoothstep(0.46, 1.0, n);
+
+  // Dark theme: bright, additive aurora that glows on the near-black bg.
+  vec3 dDeep = vec3(0.27, 0.23, 0.95);
+  vec3 dViolet = vec3(0.60, 0.50, 1.0);
+  vec3 dSky = vec3(0.36, 0.62, 1.0);
+  vec3 darkCol = mix(dDeep, dViolet, smoothstep(0.45, 1.0, n));
+  darkCol = mix(darkCol, dSky, smoothstep(0.62, 1.0, q.y) * 0.45);
+  float darkAlpha = m * 0.55;
+
+  // Light theme: deeper, more saturated ink + higher opacity so the same
+  // smoke stays clearly visible against the near-white bg.
+  vec3 lDeep = vec3(0.30, 0.26, 0.78);
+  vec3 lViolet = vec3(0.42, 0.34, 0.92);
+  vec3 lSky = vec3(0.24, 0.46, 0.90);
+  vec3 lightCol = mix(lDeep, lViolet, smoothstep(0.45, 1.0, n));
+  lightCol = mix(lightCol, lSky, smoothstep(0.62, 1.0, q.y) * 0.45);
+  float lightAlpha = m * 0.85;
+
+  vec3 col = mix(lightCol, darkCol, uDark);
+  float alpha = mix(lightAlpha, darkAlpha, uDark);
   gl_FragColor = vec4(col * alpha, alpha);
 }
 `;
 
-/** A GPU shader aurora (transparent, theme-agnostic) plus a faint masked grid. */
+/** A GPU shader aurora (theme-aware) plus a faint masked grid. */
 export function ShaderBackground() {
+  const theme = useTheme((s) => s.theme);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const programRef = useRef<Program | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -86,8 +108,10 @@ export function ShaderBackground() {
       uniforms: {
         uTime: { value: 0 },
         uResolution: { value: [gl.canvas.width, gl.canvas.height] },
+        uDark: { value: useTheme.getState().theme === 'dark' ? 1 : 0 },
       },
     });
+    programRef.current = program;
     const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
 
     function resize() {
@@ -100,24 +124,47 @@ export function ShaderBackground() {
     let frame = 0;
     function update(time: number) {
       frame = requestAnimationFrame(update);
-      program.uniforms.uTime.value = time * 0.001;
-      renderer.render({ scene: mesh });
+      // Bail if the GL context is lost (StrictMode remount, GPU reset, etc.)
+      // instead of crashing on an unlinked program every single frame.
+      if (gl.isContextLost()) {
+        return;
+      }
+      try {
+        program.uniforms.uTime.value = time * 0.001;
+        renderer.render({ scene: mesh });
+      } catch {
+        cancelAnimationFrame(frame);
+      }
     }
     frame = requestAnimationFrame(update);
 
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener('resize', resize);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      programRef.current = null;
     };
   }, []);
+
+  // Sync the theme uniform without rebuilding the GL context on every toggle.
+  useEffect(() => {
+    const program = programRef.current;
+    if (program) {
+      program.uniforms.uDark.value = theme === 'dark' ? 1 : 0;
+    }
+  }, [theme]);
 
   return (
     <div
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       aria-hidden
     >
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full opacity-70" />
+      <canvas
+        ref={canvasRef}
+        className={cn(
+          'absolute inset-0 h-full w-full',
+          theme === 'dark' ? 'opacity-70' : 'opacity-90',
+        )}
+      />
       <div
         className="absolute inset-0 opacity-[0.05]"
         style={{
@@ -127,6 +174,14 @@ export function ShaderBackground() {
           maskImage: 'radial-gradient(ellipse at 50% 0%, black, transparent 78%)',
           WebkitMaskImage:
             'radial-gradient(ellipse at 50% 0%, black, transparent 78%)',
+        }}
+      />
+      {/* Vignette scrim: frames the aurora and keeps body text high-contrast. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(135% 95% at 50% 0%, transparent 30%, var(--color-background) 100%)',
         }}
       />
     </div>
