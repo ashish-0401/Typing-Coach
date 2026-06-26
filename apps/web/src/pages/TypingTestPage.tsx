@@ -18,7 +18,7 @@ import {
 import { generateWords } from '../typing/words';
 import { fetchQuote, randomQuote } from '../typing/quotes';
 import { useTypingConfig } from '../typing/config';
-import type { Mode, WordDifficulty } from '../typing/config';
+import type { Mode } from '../typing/config';
 import { Toast } from '../components/ui/Toast';
 
 const TIME_OPTIONS = [15, 30, 60] as const;
@@ -36,14 +36,13 @@ function buildTarget(
   wordCount: number,
   punctuation: boolean,
   numbers: boolean,
-  difficulty: WordDifficulty,
 ): string {
   if (mode === 'quote') {
     return randomQuote();
   }
   return mode === 'time'
-    ? generateWords(Math.max(60, timeSec * 3), difficulty, { punctuation, numbers })
-    : generateWords(wordCount, difficulty, { punctuation, numbers });
+    ? generateWords(Math.max(60, timeSec * 3), { punctuation, numbers })
+    : generateWords(wordCount, { punctuation, numbers });
 }
 
 export function TypingTestPage() {
@@ -87,8 +86,6 @@ export function TypingTestPage() {
   const setWordCount = useTypingConfig((s) => s.setWordCount);
   const setPunctuation = useTypingConfig((s) => s.setPunctuation);
   const setNumbers = useTypingConfig((s) => s.setNumbers);
-  const wordDifficulty = useTypingConfig((s) => s.wordDifficulty);
-  const setWordDifficulty = useTypingConfig((s) => s.setWordDifficulty);
 
   // Session
   const [target, setTarget] = useState<string>(() => {
@@ -99,7 +96,6 @@ export function TypingTestPage() {
       c.wordCount,
       c.punctuation,
       c.numbers,
-      c.wordDifficulty,
     );
   });
   const [typed, setTyped] = useState('');
@@ -346,7 +342,7 @@ export function TypingTestPage() {
       return;
     }
     startSession(
-      buildTarget(mode, timeSec, wordCount, punctuation, numbers, wordDifficulty),
+      buildTarget(mode, timeSec, wordCount, punctuation, numbers),
       false,
     );
   }, [
@@ -357,7 +353,6 @@ export function TypingTestPage() {
     wordCount,
     punctuation,
     numbers,
-    wordDifficulty,
   ]);
 
   const repeatTest = useCallback(() => {
@@ -371,7 +366,7 @@ export function TypingTestPage() {
       return;
     }
     startSession(
-      buildTarget(nextMode, timeSec, wordCount, punctuation, numbers, wordDifficulty),
+      buildTarget(nextMode, timeSec, wordCount, punctuation, numbers),
       false,
     );
   }
@@ -380,13 +375,13 @@ export function TypingTestPage() {
     if (mode === 'time') {
       setTimeSec(value);
       startSession(
-        buildTarget('time', value, wordCount, punctuation, numbers, wordDifficulty),
+        buildTarget('time', value, wordCount, punctuation, numbers),
         false,
       );
     } else {
       setWordCount(value);
       startSession(
-        buildTarget('words', timeSec, value, punctuation, numbers, wordDifficulty),
+        buildTarget('words', timeSec, value, punctuation, numbers),
         false,
       );
     }
@@ -396,7 +391,7 @@ export function TypingTestPage() {
     const next = !punctuation;
     setPunctuation(next);
     startSession(
-      buildTarget(mode, timeSec, wordCount, next, numbers, wordDifficulty),
+      buildTarget(mode, timeSec, wordCount, next, numbers),
       false,
     );
   }
@@ -405,15 +400,7 @@ export function TypingTestPage() {
     const next = !numbers;
     setNumbers(next);
     startSession(
-      buildTarget(mode, timeSec, wordCount, punctuation, next, wordDifficulty),
-      false,
-    );
-  }
-
-  function chooseDifficulty(value: WordDifficulty) {
-    setWordDifficulty(value);
-    startSession(
-      buildTarget(mode, timeSec, wordCount, punctuation, numbers, value),
+      buildTarget(mode, timeSec, wordCount, punctuation, next),
       false,
     );
   }
@@ -529,16 +516,6 @@ export function TypingTestPage() {
                   <TabButton active={numbers} onClick={toggleNumbers}>
                     numbers
                   </TabButton>
-                  <span className="mx-2 h-5 w-px bg-border" />
-                  {(['easy', 'medium', 'hard'] as const).map((level) => (
-                    <TabButton
-                      key={level}
-                      active={wordDifficulty === level}
-                      onClick={() => chooseDifficulty(level)}
-                    >
-                      {level}
-                    </TabButton>
-                  ))}
                 </>
               )}
             </div>

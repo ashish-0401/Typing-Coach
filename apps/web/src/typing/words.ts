@@ -1,5 +1,4 @@
-import type { WordDifficulty } from './config';
-import { WORDS_BY_DIFFICULTY } from './words-en';
+import { WORDS_EN } from './words-en';
 
 const PUNCTUATION = [',', '.', ';', ':', '!', '?'];
 
@@ -21,17 +20,15 @@ export interface GenerateWordOptions {
   numbers?: boolean;
 }
 
-/** A stream of `count` common words sampled from the chosen difficulty bucket. */
+/** A stream of `count` random common words. */
 export function generateWords(
   count: number,
-  difficulty: WordDifficulty,
   options: GenerateWordOptions = {},
 ): string {
   const { punctuation = false, numbers = false } = options;
-  const pool = WORDS_BY_DIFFICULTY[difficulty] ?? WORDS_BY_DIFFICULTY.easy;
   const words: string[] = [];
   for (let i = 0; i < count; i += 1) {
-    let token = pool[Math.floor(Math.random() * pool.length)] ?? 'the';
+    let token = WORDS_EN[Math.floor(Math.random() * WORDS_EN.length)] ?? 'the';
 
     // Roughly 1 in 6 tokens becomes a number when enabled.
     if (numbers && Math.random() < 0.17) {
