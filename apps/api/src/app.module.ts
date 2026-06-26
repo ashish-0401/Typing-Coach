@@ -12,6 +12,7 @@ import { LearningProfileModule } from './learning-profile/learning-profile.modul
 import { AiModule } from './ai/ai.module';
 import { CoachModule } from './coach/coach.module';
 import { ExercisesModule } from './exercises/exercises.module';
+import { AgentsModule } from './agents/agents.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ExercisesModule } from './exercises/exercises.module';
     AiModule,
     CoachModule,
     ExercisesModule,
+    AgentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
