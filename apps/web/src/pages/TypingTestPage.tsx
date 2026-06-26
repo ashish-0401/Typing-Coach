@@ -36,13 +36,14 @@ function buildTarget(
   wordCount: number,
   punctuation: boolean,
   numbers: boolean,
+  diff: number,
 ): string {
   if (mode === 'prose') {
     return localProsePassage();
   }
   return mode === 'time'
-    ? generateWords(Math.max(60, timeSec * 3), { punctuation, numbers })
-    : generateWords(wordCount, { punctuation, numbers });
+    ? generateWords(Math.max(60, timeSec * 3), diff, { punctuation, numbers })
+    : generateWords(wordCount, diff, { punctuation, numbers });
 }
 
 export function TypingTestPage() {
@@ -86,11 +87,20 @@ export function TypingTestPage() {
   const setWordCount = useTypingConfig((s) => s.setWordCount);
   const setPunctuation = useTypingConfig((s) => s.setPunctuation);
   const setNumbers = useTypingConfig((s) => s.setNumbers);
+  const wordDiff = useTypingConfig((s) => s.wordDiff);
+  const setWordDiff = useTypingConfig((s) => s.setWordDiff);
 
   // Session
   const [target, setTarget] = useState<string>(() => {
     const c = useTypingConfig.getState();
-    return buildTarget(c.mode, c.timeSec, c.wordCount, c.punctuation, c.numbers);
+    return buildTarget(
+      c.mode,
+      c.timeSec,
+      c.wordCount,
+      c.punctuation,
+      c.numbers,
+      c.wordDiff,
+    );
   });
   const [typed, setTyped] = useState('');
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -335,8 +345,20 @@ export function TypingTestPage() {
       void startProse();
       return;
     }
-    startSession(buildTarget(mode, timeSec, wordCount, punctuation, numbers), false);
-  }, [startSession, startProse, mode, timeSec, wordCount, punctuation, numbers]);
+    startSession(
+      buildTarget(mode, timeSec, wordCount, punctuation, numbers, wordDiff),
+      false,
+    );
+  }, [
+    startSession,
+    startProse,
+    mode,
+    timeSec,
+    wordCount,
+    punctuation,
+    numbers,
+    wordDiff,
+  ]);
 
   const repeatTest = useCallback(() => {
     startSession(target, true);
@@ -348,29 +370,52 @@ export function TypingTestPage() {
       void startProse();
       return;
     }
-    startSession(buildTarget(nextMode, timeSec, wordCount, punctuation, numbers), false);
+    startSession(
+      buildTarget(nextMode, timeSec, wordCount, punctuation, numbers, wordDiff),
+      false,
+    );
   }
 
   function chooseAmount(value: number) {
     if (mode === 'time') {
       setTimeSec(value);
-      startSession(buildTarget('time', value, wordCount, punctuation, numbers), false);
+      startSession(
+        buildTarget('time', value, wordCount, punctuation, numbers, wordDiff),
+        false,
+      );
     } else {
       setWordCount(value);
-      startSession(buildTarget('words', timeSec, value, punctuation, numbers), false);
+      startSession(
+        buildTarget('words', timeSec, value, punctuation, numbers, wordDiff),
+        false,
+      );
     }
   }
 
   function togglePunctuation() {
     const next = !punctuation;
     setPunctuation(next);
-    startSession(buildTarget(mode, timeSec, wordCount, next, numbers), false);
+    startSession(
+      buildTarget(mode, timeSec, wordCount, next, numbers, wordDiff),
+      false,
+    );
   }
 
   function toggleNumbers() {
     const next = !numbers;
     setNumbers(next);
-    startSession(buildTarget(mode, timeSec, wordCount, punctuation, next), false);
+    startSession(
+      buildTarget(mode, timeSec, wordCount, punctuation, next, wordDiff),
+      false,
+    );
+  }
+
+  function chooseDiff(value: number) {
+    setWordDiff(value);
+    startSession(
+      buildTarget(mode, timeSec, wordCount, punctuation, numbers, value),
+      false,
+    );
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -484,6 +529,17 @@ export function TypingTestPage() {
                   <TabButton active={numbers} onClick={toggleNumbers}>
                     numbers
                   </TabButton>
+                  <span className="mx-2 h-5 w-px bg-border" />
+                  <span className="px-1 text-muted">diff</span>
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <TabButton
+                      key={level}
+                      active={wordDiff === level}
+                      onClick={() => chooseDiff(level)}
+                    >
+                      {level}
+                    </TabButton>
+                  ))}
                 </>
               )}
             </div>
