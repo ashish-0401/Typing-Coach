@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Loader2, Play, Sparkles, Trash2 } from 'lucide-react';
 import {
@@ -19,6 +19,12 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { DrillRunner } from '../components/typing/DrillRunner';
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard'];
+
+/** Weakness/difficulty handed in when navigating from the Training Plan. */
+interface DrillPrefill {
+  weakness?: string;
+  difficulty?: ExerciseDifficulty;
+}
 
 function Pill({
   active,
@@ -47,7 +53,11 @@ function Pill({
 
 export function ExercisesPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
+  // A Practice action on the Training Plan navigates here with a prefilled
+  // weakness and difficulty.
+  const prefill = (location.state as DrillPrefill | null) ?? null;
 
   const profileQuery = useQuery({
     queryKey: ['learning-profile'],
@@ -65,17 +75,27 @@ export function ExercisesPage() {
     refetchOnWindowFocus: false,
   });
 
-  // Stay grounded in real data: only offer weaknesses the user actually has.
+  const [selectedWeakness, setSelectedWeakness] = useState<string | null>(
+    prefill?.weakness ?? null,
+  );
+  const [difficulty, setDifficulty] = useState<ExerciseDifficulty>(
+    prefill?.difficulty ?? 'medium',
+  );
+  const [activeDrill, setActiveDrill] = useState<GeneratedExercise | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  // Stay grounded in real data: only offer weaknesses the user actually has,
+  // plus any weakness handed in from the Training Plan (even if it is no longer
+  // one of their current top weaknesses).
   const weaknessOptions = useMemo(() => {
     const fromProfile = profileQuery.data?.primaryWeaknesses ?? [];
     const fromDiagnosis = diagnosisQuery.data?.patterns ?? [];
-    return Array.from(new Set([...fromProfile, ...fromDiagnosis]));
-  }, [profileQuery.data, diagnosisQuery.data]);
-
-  const [selectedWeakness, setSelectedWeakness] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<ExerciseDifficulty>('medium');
-  const [activeDrill, setActiveDrill] = useState<GeneratedExercise | null>(null);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+    const merged = [...fromProfile, ...fromDiagnosis];
+    if (selectedWeakness && !merged.includes(selectedWeakness)) {
+      merged.unshift(selectedWeakness);
+    }
+    return Array.from(new Set(merged));
+  }, [profileQuery.data, diagnosisQuery.data, selectedWeakness]);
 
   // Default to the top weakness until the user picks one, derived rather than
   // stored in state (avoids a setState-in-effect cascade).
