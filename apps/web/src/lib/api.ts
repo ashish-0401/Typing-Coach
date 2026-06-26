@@ -345,3 +345,68 @@ export async function deleteExercise(id: string): Promise<void> {
   }
 }
 
+export type GoalMetric = 'wpm' | 'accuracy';
+
+export interface PlanGoal {
+  metric: GoalMetric;
+  target: number;
+  rationale: string;
+}
+
+export interface RecommendedDrill {
+  weakness: string;
+  difficulty: ExerciseDifficulty;
+}
+
+export interface PlanEvaluation {
+  wpmDelta: number;
+  accuracyDelta: number;
+  metGoals: string[];
+}
+
+export interface TrainingPlan {
+  _id: string;
+  userId: string;
+  summary: string;
+  targetWeaknesses: string[];
+  goals: PlanGoal[];
+  recommendedDrills: RecommendedDrill[];
+  baseline: { wpm: number; accuracy: number };
+  basedOnDiagnosisId: string | null;
+  previousPlanId: string | null;
+  evaluation: PlanEvaluation | null;
+  aiModel: string;
+  createdAt: string;
+}
+
+export async function fetchLatestPlan(): Promise<TrainingPlan | null> {
+  const response = await fetch(`${API_URL}/agents/plans/latest`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as TrainingPlan | null;
+}
+
+export async function fetchPlans(): Promise<TrainingPlan[]> {
+  const response = await fetch(`${API_URL}/agents/plans`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as TrainingPlan[];
+}
+
+export async function runCoachingCycle(): Promise<TrainingPlan> {
+  const response = await fetch(`${API_URL}/agents/coaching-cycle`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+  return (await response.json()) as TrainingPlan;
+}
+

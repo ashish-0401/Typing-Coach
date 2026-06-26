@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { to: '/profile', label: 'Profile', authed: true },
   { to: '/exercises', label: 'Drills', authed: true },
   { to: '/coach', label: 'Coach', authed: true },
+  { to: '/plan', label: 'Plan', authed: true },
 ];
 
 function navLinkClass({ isActive }: { isActive: boolean }): string {
