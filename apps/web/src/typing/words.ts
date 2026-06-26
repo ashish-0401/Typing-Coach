@@ -1,13 +1,5 @@
-import { WORDS_EN } from './words-en';
-
-// Difficulty tiers: how deep into the frequency-ordered list to sample from.
-// Higher diff = rarer (but still real) words = harder finger patterns.
-const TIER_SIZES = [300, 600, 1000, 1500, WORDS_EN.length];
-
-function tierSize(diff: number): number {
-  const clamped = Math.min(Math.max(Math.round(diff), 1), TIER_SIZES.length);
-  return TIER_SIZES[clamped - 1] ?? WORDS_EN.length;
-}
+import type { WordDifficulty } from './config';
+import { WORDS_BY_DIFFICULTY } from './words-en';
 
 const PUNCTUATION = [',', '.', ';', ':', '!', '?'];
 
@@ -29,20 +21,17 @@ export interface GenerateWordOptions {
   numbers?: boolean;
 }
 
-/**
- * A stream of `count` common words. `diff` (1-5) picks how deep into the
- * frequency-ordered list to sample from: higher = rarer, harder-to-type words.
- */
+/** A stream of `count` common words sampled from the chosen difficulty bucket. */
 export function generateWords(
   count: number,
-  diff: number,
+  difficulty: WordDifficulty,
   options: GenerateWordOptions = {},
 ): string {
   const { punctuation = false, numbers = false } = options;
-  const size = tierSize(diff);
+  const pool = WORDS_BY_DIFFICULTY[difficulty] ?? WORDS_BY_DIFFICULTY.easy;
   const words: string[] = [];
   for (let i = 0; i < count; i += 1) {
-    let token = WORDS_EN[Math.floor(Math.random() * size)] ?? 'the';
+    let token = pool[Math.floor(Math.random() * pool.length)] ?? 'the';
 
     // Roughly 1 in 6 tokens becomes a number when enabled.
     if (numbers && Math.random() < 0.17) {

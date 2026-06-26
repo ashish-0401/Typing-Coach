@@ -18,7 +18,7 @@ import {
 import { generateWords } from '../typing/words';
 import { fetchProsePassage, localProsePassage } from '../typing/prose';
 import { useTypingConfig } from '../typing/config';
-import type { Mode } from '../typing/config';
+import type { Mode, WordDifficulty } from '../typing/config';
 import { Toast } from '../components/ui/Toast';
 
 const TIME_OPTIONS = [15, 30, 60] as const;
@@ -36,14 +36,14 @@ function buildTarget(
   wordCount: number,
   punctuation: boolean,
   numbers: boolean,
-  diff: number,
+  difficulty: WordDifficulty,
 ): string {
   if (mode === 'prose') {
     return localProsePassage();
   }
   return mode === 'time'
-    ? generateWords(Math.max(60, timeSec * 3), diff, { punctuation, numbers })
-    : generateWords(wordCount, diff, { punctuation, numbers });
+    ? generateWords(Math.max(60, timeSec * 3), difficulty, { punctuation, numbers })
+    : generateWords(wordCount, difficulty, { punctuation, numbers });
 }
 
 export function TypingTestPage() {
@@ -87,8 +87,8 @@ export function TypingTestPage() {
   const setWordCount = useTypingConfig((s) => s.setWordCount);
   const setPunctuation = useTypingConfig((s) => s.setPunctuation);
   const setNumbers = useTypingConfig((s) => s.setNumbers);
-  const wordDiff = useTypingConfig((s) => s.wordDiff);
-  const setWordDiff = useTypingConfig((s) => s.setWordDiff);
+  const wordDifficulty = useTypingConfig((s) => s.wordDifficulty);
+  const setWordDifficulty = useTypingConfig((s) => s.setWordDifficulty);
 
   // Session
   const [target, setTarget] = useState<string>(() => {
@@ -99,7 +99,7 @@ export function TypingTestPage() {
       c.wordCount,
       c.punctuation,
       c.numbers,
-      c.wordDiff,
+      c.wordDifficulty,
     );
   });
   const [typed, setTyped] = useState('');
@@ -346,7 +346,7 @@ export function TypingTestPage() {
       return;
     }
     startSession(
-      buildTarget(mode, timeSec, wordCount, punctuation, numbers, wordDiff),
+      buildTarget(mode, timeSec, wordCount, punctuation, numbers, wordDifficulty),
       false,
     );
   }, [
@@ -357,7 +357,7 @@ export function TypingTestPage() {
     wordCount,
     punctuation,
     numbers,
-    wordDiff,
+    wordDifficulty,
   ]);
 
   const repeatTest = useCallback(() => {
@@ -371,7 +371,7 @@ export function TypingTestPage() {
       return;
     }
     startSession(
-      buildTarget(nextMode, timeSec, wordCount, punctuation, numbers, wordDiff),
+      buildTarget(nextMode, timeSec, wordCount, punctuation, numbers, wordDifficulty),
       false,
     );
   }
@@ -380,13 +380,13 @@ export function TypingTestPage() {
     if (mode === 'time') {
       setTimeSec(value);
       startSession(
-        buildTarget('time', value, wordCount, punctuation, numbers, wordDiff),
+        buildTarget('time', value, wordCount, punctuation, numbers, wordDifficulty),
         false,
       );
     } else {
       setWordCount(value);
       startSession(
-        buildTarget('words', timeSec, value, punctuation, numbers, wordDiff),
+        buildTarget('words', timeSec, value, punctuation, numbers, wordDifficulty),
         false,
       );
     }
@@ -396,7 +396,7 @@ export function TypingTestPage() {
     const next = !punctuation;
     setPunctuation(next);
     startSession(
-      buildTarget(mode, timeSec, wordCount, next, numbers, wordDiff),
+      buildTarget(mode, timeSec, wordCount, next, numbers, wordDifficulty),
       false,
     );
   }
@@ -405,13 +405,13 @@ export function TypingTestPage() {
     const next = !numbers;
     setNumbers(next);
     startSession(
-      buildTarget(mode, timeSec, wordCount, punctuation, next, wordDiff),
+      buildTarget(mode, timeSec, wordCount, punctuation, next, wordDifficulty),
       false,
     );
   }
 
-  function chooseDiff(value: number) {
-    setWordDiff(value);
+  function chooseDifficulty(value: WordDifficulty) {
+    setWordDifficulty(value);
     startSession(
       buildTarget(mode, timeSec, wordCount, punctuation, numbers, value),
       false,
@@ -530,12 +530,11 @@ export function TypingTestPage() {
                     numbers
                   </TabButton>
                   <span className="mx-2 h-5 w-px bg-border" />
-                  <span className="px-1 text-muted">diff</span>
-                  {[1, 2, 3, 4, 5].map((level) => (
+                  {(['easy', 'medium', 'hard'] as const).map((level) => (
                     <TabButton
                       key={level}
-                      active={wordDiff === level}
-                      onClick={() => chooseDiff(level)}
+                      active={wordDifficulty === level}
+                      onClick={() => chooseDifficulty(level)}
                     >
                       {level}
                     </TabButton>
