@@ -74,6 +74,12 @@ export function localProsePassage(): string {
   );
 }
 
+/** Log why we fell back to a bundled passage, then return one. */
+function fallbackPassage(reason: string): string {
+  console.warn(`[prose] ${reason}; using a bundled passage instead.`);
+  return localProsePassage();
+}
+
 /**
  * Fetch a short paragraph of real sentences from the public quotes API, falling
  * back to a bundled passage on any error, timeout, or empty/short response.
@@ -84,7 +90,9 @@ export async function fetchProsePassage(): Promise<string> {
   try {
     const response = await fetch(QUOTES_API, { signal: controller.signal });
     if (!response.ok) {
-      return localProsePassage();
+      return fallbackPassage(
+        `quotes API responded with status ${response.status}`,
+      );
     }
     const data = (await response.json()) as QuotableQuote[];
     const joined = Array.isArray(data)
@@ -94,9 +102,18 @@ export async function fetchProsePassage(): Promise<string> {
           .join(' ')
       : '';
     const cleaned = normalizePassage(joined);
-    return cleaned.length >= MIN_LEN ? cleaned : localProsePassage();
-  } catch {
-    return localProsePassage();
+    if (cleaned.length >= MIN_LEN) {
+      return cleaned;
+    }
+    return fallbackPassage('quotes API returned no usable text');
+  } catch (error) {
+    const reason =
+      error instanceof DOMException && error.name === 'AbortError'
+        ? `quotes API timed out after ${FETCH_TIMEOUT_MS}ms`
+        : `quotes API request failed (${
+            error instanceof Error ? error.message : String(error)
+          })`;
+    return fallbackPassage(reason);
   } finally {
     clearTimeout(timeout);
   }
