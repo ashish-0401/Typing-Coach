@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Mode = 'time' | 'words' | 'prose';
+export type Mode = 'time' | 'words' | 'quote';
 export type WordDifficulty = 'easy' | 'medium' | 'hard';
 
 interface TypingConfigState {

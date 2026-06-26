@@ -1,4 +1,4 @@
-// Curated, properly-formatted real quotes (short excerpts) for prose mode,
+// Curated, properly-formatted real quotes (short excerpts) for quote mode,
 // bundled the way MonkeyType and Keymash ship their quotes (NOT a flaky public
 // API). Normalized to clean ASCII. Source: MonkeyType's open english quote set
 // (excerpts from various authors), used as short text for typing practice.

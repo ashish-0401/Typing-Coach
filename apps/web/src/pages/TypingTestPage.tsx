@@ -16,7 +16,7 @@ import {
   findMistypedWords,
 } from '../typing/metrics';
 import { generateWords } from '../typing/words';
-import { fetchProsePassage, localProsePassage } from '../typing/prose';
+import { fetchQuote, randomQuote } from '../typing/quotes';
 import { useTypingConfig } from '../typing/config';
 import type { Mode, WordDifficulty } from '../typing/config';
 import { Toast } from '../components/ui/Toast';
@@ -38,8 +38,8 @@ function buildTarget(
   numbers: boolean,
   difficulty: WordDifficulty,
 ): string {
-  if (mode === 'prose') {
-    return localProsePassage();
+  if (mode === 'quote') {
+    return randomQuote();
   }
   return mode === 'time'
     ? generateWords(Math.max(60, timeSec * 3), difficulty, { punctuation, numbers })
@@ -127,8 +127,8 @@ export function TypingTestPage() {
   const prevIncorrectRef = useRef(0);
   const doneRef = useRef(false);
   const savedRef = useRef(false);
-  const proseReqRef = useRef(0);
-  const didInitProse = useRef(false);
+  const quoteReqRef = useRef(0);
+  const didInitQuote = useRef(false);
 
   const isComplete = result !== null;
   const isActive = startTime !== null && !isComplete;
@@ -201,7 +201,7 @@ export function TypingTestPage() {
             ? `time ${timeSec}s`
             : mode === 'words'
               ? `words ${wordCount}`
-              : 'prose',
+              : 'quote',
         samples: [...samplesRef.current],
       });
     },
@@ -320,29 +320,29 @@ export function TypingTestPage() {
     window.requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
-  // Prose mode pulls a real passage from a public API, with a local fallback.
-  const startProse = useCallback(async () => {
-    const reqId = (proseReqRef.current += 1);
+  // Quote mode loads a bundled quote (resolves instantly).
+  const startQuote = useCallback(async () => {
+    const reqId = (quoteReqRef.current += 1);
     setLoadingPassage(true);
-    const passage = await fetchProsePassage();
-    if (proseReqRef.current !== reqId) {
+    const passage = await fetchQuote();
+    if (quoteReqRef.current !== reqId) {
       return;
     }
     setLoadingPassage(false);
     startSession(passage, false);
   }, [startSession]);
 
-  // On arriving already in prose mode, fetch one fresh passage.
+  // On arriving already in quote mode, load a fresh quote.
   useEffect(() => {
-    if (!didInitProse.current && useTypingConfig.getState().mode === 'prose') {
-      didInitProse.current = true;
-      void startProse();
+    if (!didInitQuote.current && useTypingConfig.getState().mode === 'quote') {
+      didInitQuote.current = true;
+      void startQuote();
     }
-  }, [startProse]);
+  }, [startQuote]);
 
   const nextTest = useCallback(() => {
-    if (mode === 'prose') {
-      void startProse();
+    if (mode === 'quote') {
+      void startQuote();
       return;
     }
     startSession(
@@ -351,7 +351,7 @@ export function TypingTestPage() {
     );
   }, [
     startSession,
-    startProse,
+    startQuote,
     mode,
     timeSec,
     wordCount,
@@ -366,8 +366,8 @@ export function TypingTestPage() {
 
   function chooseMode(nextMode: Mode) {
     setMode(nextMode);
-    if (nextMode === 'prose') {
-      void startProse();
+    if (nextMode === 'quote') {
+      void startQuote();
       return;
     }
     startSession(
@@ -444,7 +444,7 @@ export function TypingTestPage() {
     setBackspaces(newBackspaces);
     setTyped(next);
 
-    // Words and prose modes complete when the whole passage is typed.
+    // Words and quote modes complete when the whole passage is typed.
     if (mode !== 'time' && next.length >= target.length) {
       const durationMs = now - (startTime ?? now);
       typedRef.current = next;
@@ -507,10 +507,10 @@ export function TypingTestPage() {
               <TabButton active={mode === 'words'} onClick={() => chooseMode('words')}>
                 words
               </TabButton>
-              <TabButton active={mode === 'prose'} onClick={() => chooseMode('prose')}>
-                prose
+              <TabButton active={mode === 'quote'} onClick={() => chooseMode('quote')}>
+                quote
               </TabButton>
-              {mode !== 'prose' && (
+              {mode !== 'quote' && (
                 <>
                   <span className="mx-2 h-5 w-px bg-border" />
                   {amountOptions.map((value) => (
@@ -640,7 +640,7 @@ export function TypingTestPage() {
               {loadingPassage && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
                   <span className="font-mono text-sm text-muted">
-                    Loading a passage...
+                    Loading a quote...
                   </span>
                 </div>
               )}
