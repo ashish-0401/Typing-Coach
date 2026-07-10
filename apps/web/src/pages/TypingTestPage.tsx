@@ -20,6 +20,7 @@ import { fetchQuote, randomQuote } from '../typing/quotes';
 import { useTypingConfig } from '../typing/config';
 import type { Mode } from '../typing/config';
 import { Toast } from '../components/ui/Toast';
+import { cn } from '@/lib/utils';
 
 const TIME_OPTIONS = [15, 30, 60] as const;
 const WORD_OPTIONS = [10, 25, 50] as const;
@@ -456,6 +457,20 @@ export function TypingTestPage() {
   const totalWords = target.split(' ').length;
   const typedWords = typed.length === 0 ? 0 : target.slice(0, typed.length).split(' ').filter(Boolean).length;
 
+  // Live readouts derived from existing engine state (no new engine work).
+  const liveWpm =
+    elapsedMs > 400 ? Math.round(calculateWpm(correctKeystrokes, elapsedMs)) : 0;
+  const liveAccuracy =
+    totalKeystrokes > 0
+      ? Math.round(calculateAccuracy(correctKeystrokes, totalKeystrokes))
+      : 100;
+  const progress =
+    mode === 'time'
+      ? Math.min(1, elapsedMs / (timeSec * 1000))
+      : target.length > 0
+        ? Math.min(1, typed.length / target.length)
+        : 0;
+
   return (
     <div className="mx-auto max-w-4xl">
       {(justSignedUp || justLoggedIn) && user && !welcomeDismissed && (
@@ -484,22 +499,33 @@ export function TypingTestPage() {
         />
       )}
       {!isComplete && (
-        <>
-          {/* Config bar */}
-          <div className="mb-12 flex justify-center">
-            <div className="flex items-center gap-1 rounded-xl border border-border bg-card/70 px-2 py-1.5 font-mono text-sm shadow-md backdrop-blur-sm">
-              <TabButton active={mode === 'time'} onClick={() => chooseMode('time')}>
-                time
-              </TabButton>
-              <TabButton active={mode === 'words'} onClick={() => chooseMode('words')}>
-                words
-              </TabButton>
-              <TabButton active={mode === 'quote'} onClick={() => chooseMode('quote')}>
-                quote
-              </TabButton>
+        <div className="relative">
+          {/* The mat: a defined training surface on the dojo floor, instead of
+              MonkeyType's bare text floating in an empty void. */}
+          <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card/40 px-7 py-7 shadow-lg backdrop-blur-sm">
+            <MatCorners />
+
+            {/* Mode + options live in the mat header, and recede once you start
+                typing so the words own your focus. */}
+            <div
+              className={cn(
+                'relative flex flex-wrap items-center justify-between gap-3 font-mono text-sm transition-opacity duration-300',
+                isActive ? 'opacity-25 hover:opacity-100' : 'opacity-100',
+              )}
+            >
+              <div className="flex items-center gap-1">
+                <TabButton active={mode === 'time'} onClick={() => chooseMode('time')}>
+                  time
+                </TabButton>
+                <TabButton active={mode === 'words'} onClick={() => chooseMode('words')}>
+                  words
+                </TabButton>
+                <TabButton active={mode === 'quote'} onClick={() => chooseMode('quote')}>
+                  quote
+                </TabButton>
+              </div>
               {mode !== 'quote' && (
-                <>
-                  <span className="mx-2 h-5 w-px bg-border" />
+                <div className="flex items-center gap-1">
                   {amountOptions.map((value) => (
                     <TabButton
                       key={value}
@@ -516,137 +542,157 @@ export function TypingTestPage() {
                   <TabButton active={numbers} onClick={toggleNumbers}>
                     numbers
                   </TabButton>
-                </>
+                </div>
               )}
+            </div>
+
+            {/* Live HUD: real-time WPM, accuracy and pace that a stateless
+                tester keeps hidden. */}
+            <div className="relative mt-6 flex items-end justify-between gap-4">
+              <div className="flex items-end gap-7">
+                <HudStat label="wpm" value={liveWpm} hero />
+                <HudStat label="acc" value={`${liveAccuracy}%`} />
+              </div>
+              <HudStat
+                label={
+                  mode === 'time' ? 'time left' : mode === 'words' ? 'words' : 'done'
+                }
+                value={
+                  mode === 'time'
+                    ? `${remaining}s`
+                    : mode === 'words'
+                      ? `${typedWords}/${totalWords}`
+                      : `${Math.round(progress * 100)}%`
+                }
+                align="right"
+              />
+            </div>
+            <div className="relative mt-3 h-1 w-full overflow-hidden rounded-full bg-elevated">
+              <div
+                className="h-full rounded-full bg-accent transition-[width] duration-150 ease-linear"
+                style={{ width: `${progress * 100}%` }}
+              />
+            </div>
+
+            {/* Caps Lock warning */}
+            {capsLock && (
+              <div className="relative mt-4 flex justify-center">
+                <span className="inline-flex items-center gap-2 rounded-lg bg-error/15 px-3 py-1.5 font-mono text-sm font-semibold text-error">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="m12 5 7 7H5l7-7Z" />
+                    <rect x="5" y="16" width="14" height="3" rx="1" />
+                  </svg>
+                  Caps Lock
+                </span>
+              </div>
+            )}
+
+            {/* Typing surface (engine internals unchanged) */}
+            <div
+              className="relative mt-7 cursor-text"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                focusInput();
+              }}
+            >
+              <div
+                ref={viewportRef}
+                className="relative overflow-hidden"
+                style={{ height: '7.8rem' }}
+              >
+                <div
+                  className={`typing-caret ${isActive && isFocused ? '' : 'typing-caret--idle'}`}
+                  style={{ left: caret.left, top: caret.top, height: caret.height }}
+                  aria-hidden
+                />
+                <div
+                  ref={textRef}
+                  className={
+                    'relative select-none whitespace-pre-wrap break-words font-mono text-[1.6rem] ' +
+                    'leading-[2.6rem] tracking-wide transition-[transform,filter,opacity] duration-150 ' +
+                    (isFocused ? '' : 'blur-[3px] opacity-60')
+                  }
+                  style={{ transform: `translateY(-${scrollOffset}px)` }}
+                >
+                  {target.split('').map((char, index) => {
+                    let className = 'text-muted';
+                    if (index < typed.length) {
+                      className =
+                        typed[index] === char
+                          ? 'text-foreground'
+                          : 'text-error underline decoration-error/60';
+                    }
+                    return (
+                      <span
+                        key={index}
+                        className={className}
+                        ref={(el) => {
+                          charRefs.current[index] = el;
+                        }}
+                      >
+                        {char}
+                      </span>
+                    );
+                  })}
+                </div>
+
+                {!isFocused && !loadingPassage && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                    <span className="rounded-xl border border-border bg-elevated/90 px-4 py-2 text-sm font-medium text-foreground shadow-lg backdrop-blur">
+                      Click or press any key to focus
+                    </span>
+                  </div>
+                )}
+
+                {loadingPassage && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                    <span className="font-mono text-sm text-muted">
+                      Loading a quote...
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <input
+                ref={inputRef}
+                value={typed}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                disabled={isComplete || loadingPassage}
+                spellCheck={false}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                aria-label="Typing input"
+                className="absolute inset-0 h-full w-full cursor-text opacity-0"
+              />
             </div>
           </div>
 
-          {/* Live counter */}
-          <div className="mb-4 flex h-8 items-center gap-3 font-mono text-2xl font-medium text-accent">
-            {isActive
-              ? mode === 'time'
-                ? remaining
-                : `${typedWords}/${totalWords}`
-              : ''}
+          {/* Footer under the mat */}
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <span className="flex items-center gap-1.5 font-mono text-xs text-muted">
+              <kbd className="rounded border border-border px-1.5 py-0.5">Tab</kbd>
+              restart
+            </span>
             {isRepeat && (
-              <span className="rounded bg-accent/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent">
-                repeated
+              <span className="rounded bg-accent/15 px-2 py-0.5 font-mono text-[0.7rem] font-semibold uppercase tracking-widest text-accent">
+                repeated set
               </span>
             )}
           </div>
-
-          {/* Caps Lock warning */}
-          {capsLock && (
-            <div className="mb-4 flex justify-center">
-              <span className="inline-flex items-center gap-2 rounded-lg bg-error/15 px-3 py-1.5 font-mono text-sm font-semibold text-error">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-4 w-4"
-                >
-                  <path d="m12 5 7 7H5l7-7Z" />
-                  <rect x="5" y="16" width="14" height="3" rx="1" />
-                </svg>
-                Caps Lock
-              </span>
-            </div>
-          )}
-
-          {/* Typing surface */}
-          <div
-            className="relative cursor-text"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              focusInput();
-            }}
-          >
-            <div
-              ref={viewportRef}
-              className="relative overflow-hidden"
-              style={{ height: '7.8rem' }}
-            >
-              <div
-                className={`typing-caret ${isActive && isFocused ? '' : 'typing-caret--idle'}`}
-                style={{ left: caret.left, top: caret.top, height: caret.height }}
-                aria-hidden
-              />
-              <div
-                ref={textRef}
-                className={
-                  'relative select-none whitespace-pre-wrap break-words font-mono text-[1.6rem] ' +
-                  'leading-[2.6rem] tracking-wide transition-[transform,filter,opacity] duration-150 ' +
-                  (isFocused ? '' : 'blur-[3px] opacity-60')
-                }
-                style={{ transform: `translateY(-${scrollOffset}px)` }}
-              >
-                {target.split('').map((char, index) => {
-                  let className = 'text-muted';
-                  if (index < typed.length) {
-                    className =
-                      typed[index] === char
-                        ? 'text-foreground'
-                        : 'text-error underline decoration-error/60';
-                  }
-                  return (
-                    <span
-                      key={index}
-                      className={className}
-                      ref={(el) => {
-                        charRefs.current[index] = el;
-                      }}
-                    >
-                      {char}
-                    </span>
-                  );
-                })}
-              </div>
-
-              {!isFocused && !loadingPassage && (
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <span className="rounded-xl border border-border bg-elevated/90 px-4 py-2 text-sm font-medium text-foreground shadow-lg backdrop-blur">
-                    Click or press any key to focus
-                  </span>
-                </div>
-              )}
-
-              {loadingPassage && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-                  <span className="font-mono text-sm text-muted">
-                    Loading a quote...
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <input
-              ref={inputRef}
-              value={typed}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              disabled={isComplete || loadingPassage}
-              spellCheck={false}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              aria-label="Typing input"
-              className="absolute inset-0 h-full w-full cursor-text opacity-0"
-            />
-          </div>
-
-          {/* Restart hint */}
-          <div className="mt-10 flex justify-center">
-            <span className="font-mono text-xs text-muted">
-              <kbd className="rounded border border-border px-1.5 py-0.5">Tab</kbd> to restart
-            </span>
-          </div>
-        </>
+        </div>
       )}
 
       {/* Results */}
@@ -744,5 +790,47 @@ function TabButton({
     >
       {children}
     </button>
+  );
+}
+
+/** One live readout in the practice HUD (wpm, accuracy, pace). */
+function HudStat({
+  label,
+  value,
+  hero = false,
+  align = 'left',
+}: {
+  label: string;
+  value: string | number;
+  hero?: boolean;
+  align?: 'left' | 'right';
+}) {
+  return (
+    <div className={align === 'right' ? 'text-right' : ''}>
+      <div className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted">
+        {label}
+      </div>
+      <div
+        className={cn(
+          'font-mono font-semibold leading-none tabular-nums',
+          hero ? 'text-4xl text-accent' : 'text-2xl text-foreground',
+        )}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+/** Faint L-shaped ticks that frame the mat like a dojo training square. */
+function MatCorners() {
+  const base = 'pointer-events-none absolute size-4 border-accent/25';
+  return (
+    <>
+      <span aria-hidden className={cn(base, 'left-4 top-4 rounded-tl-md border-l border-t')} />
+      <span aria-hidden className={cn(base, 'right-4 top-4 rounded-tr-md border-r border-t')} />
+      <span aria-hidden className={cn(base, 'bottom-4 left-4 rounded-bl-md border-b border-l')} />
+      <span aria-hidden className={cn(base, 'bottom-4 right-4 rounded-br-md border-b border-r')} />
+    </>
   );
 }
