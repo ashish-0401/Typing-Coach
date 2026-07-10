@@ -1,0 +1,23 @@
+# Render blueprint for the NestJS API. Import it from the Render dashboard,
+# then set MONGODB_URI and GROQ_API_KEY (marked sync:false) as secrets.
+services:
+  - type: web
+    name: ai-practice-coach-api
+    runtime: node
+    rootDir: apps/api
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/main
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        sync: false

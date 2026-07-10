@@ -1,0 +1,23 @@
+# Runs the API and the static web app together. Set the API secrets in a root
+# .env file (or the shell) first: MONGODB_URI, JWT_SECRET, GROQ_API_KEY.
+services:
+  api:
+    build: ./apps/api
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-}
+      PORT: "3000"
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
