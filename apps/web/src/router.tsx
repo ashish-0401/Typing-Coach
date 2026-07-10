@@ -31,7 +31,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/profile',
+        path: '/insights',
         element: (
           <RequireAuth>
             <LearningProfilePage />

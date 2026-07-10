@@ -179,7 +179,7 @@ export function ExercisesPage() {
               <Button variant="secondary" onClick={() => navigate('/practice')}>
                 Take a test
               </Button>
-              <Button variant="outline" onClick={() => navigate('/profile')}>
+              <Button variant="outline" onClick={() => navigate('/insights')}>
                 Run a diagnosis
               </Button>
             </div>

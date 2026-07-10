@@ -192,7 +192,7 @@ export function LearningProfilePage() {
 
   const heading = (
     <PageHeading
-      title="Learning Profile"
+      title="Insights"
       subtitle="A living snapshot of your typing, updated after every test."
     />
   );
@@ -227,11 +227,11 @@ export function LearningProfilePage() {
         <Reveal>
           <Card className="max-w-xl">
             <h2 className="font-heading text-lg font-semibold text-foreground">
-              No profile yet
+              No insights yet
             </h2>
             <p className="mt-1 text-muted">
-              Finish a few tests to build your profile. We&apos;ll track your
-              speed, accuracy and the words that trip you up.
+              Finish a few tests and your coach will analyze your typing here:
+              the patterns, weak spots and milestones behind your numbers.
             </p>
             <Button asChild className="mt-5">
               <Link to="/practice">Start a typing test</Link>
@@ -247,7 +247,7 @@ export function LearningProfilePage() {
   return (
     <>
       <PageHeading
-        title="Learning Profile"
+        title="Insights"
         subtitle={`Built from your ${profile.totalSessions} saved ${sessionLabel}.`}
       />
 
