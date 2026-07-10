@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { PageHeading } from '../components/ui/PageHeading';
+import { SpotlightCard } from '../components/ui/SpotlightCard';
 import { Reveal } from '../components/ui/motion';
 
 const MAX_NAME = 40;
@@ -22,6 +23,14 @@ export function SettingsPage() {
 
   const currentName = user?.name ?? '';
   const [name, setName] = useState(currentName);
+
+  const initial = (currentName.trim().charAt(0) || 'U').toUpperCase();
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString(undefined, {
+        month: 'long',
+        year: 'numeric',
+      })
+    : null;
 
   const mutation = useMutation({
     mutationFn: updateProfile,
@@ -51,6 +60,29 @@ export function SettingsPage() {
   return (
     <div className="max-w-2xl">
       <PageHeading title="Settings" subtitle="Manage your account and preferences." />
+
+      <Reveal>
+        <SpotlightCard className="mb-6">
+          <div className="flex items-center gap-5">
+            <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-primary/30 to-accent/10 font-heading text-2xl font-semibold text-accent shadow-glow ring-1 ring-primary/30">
+              {initial}
+            </span>
+            <div className="min-w-0">
+              <h2 className="truncate font-heading text-2xl font-semibold tracking-tight text-foreground">
+                {currentName || 'Your account'}
+              </h2>
+              <p className="mt-0.5 truncate font-mono text-sm text-muted">
+                {user?.email}
+              </p>
+            </div>
+            {memberSince && (
+              <span className="ml-auto shrink-0 rounded-full border border-border bg-elevated px-3 py-1.5 font-mono text-xs text-muted">
+                Member since {memberSince}
+              </span>
+            )}
+          </div>
+        </SpotlightCard>
+      </Reveal>
 
       <Reveal>
         <Card>

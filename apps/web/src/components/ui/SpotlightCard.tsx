@@ -47,6 +47,8 @@ export function SpotlightCard({
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
+      whileHover={{ y: -4 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
       className={cn(
         'group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-md transition-[border-color,box-shadow] duration-300 hover:border-primary/40 hover:shadow-lg',
         className,

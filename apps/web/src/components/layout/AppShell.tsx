@@ -41,6 +41,21 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen text-foreground">
+      {/* Ambient dojo backdrop: a faint tatami grid and two breathing accent
+          glows so app pages have depth instead of flat black. Sits above the
+          global shader (-z-10) but behind page content. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-5 overflow-hidden"
+      >
+        <div className="bg-dojo-grid absolute inset-0" />
+        <div className="dojo-glow animate-breathe absolute -left-24 -top-32 size-128 bg-primary/40" />
+        <div
+          className="dojo-glow animate-breathe absolute -bottom-40 -right-24 size-136 bg-accent/30"
+          style={{ animationDelay: '3.5s' }}
+        />
+      </div>
+
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-7">

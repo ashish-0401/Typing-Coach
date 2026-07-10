@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
 import { SpotlightCard } from '../components/ui/SpotlightCard';
@@ -469,31 +470,81 @@ export function PlanPage() {
     });
   }
 
+  const runError = runMutation.isError ? runMutation.error.message : null;
+
+  if (!currentPlan) {
+    return (
+      <>
+        {heading}
+        <EmptyState
+          icon={Sparkles}
+          eyebrow="Training plan"
+          title={tooFew ? 'A few tests first' : 'Design your first plan'}
+          description={
+            tooFew
+              ? 'Take a few real typing tests and your coach will have enough history to build a plan around your actual weak spots.'
+              : 'Run a coaching cycle: your coach reviews your recent typing, recalls your history, and sets goals with drills picked from your real weaknesses.'
+          }
+          action={
+            tooFew ? (
+              <Button asChild>
+                <Link to="/practice">
+                  <Play className="size-4" />
+                  Start a test
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                onClick={() => runMutation.mutate()}
+                disabled={runMutation.isPending}
+              >
+                {runMutation.isPending ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Sparkles />
+                )}
+                {runMutation.isPending ? 'Thinking' : 'Run coaching cycle'}
+              </Button>
+            )
+          }
+          secondary={
+            runMutation.isPending ? (
+              <span className="text-sm text-muted">
+                This can take a few seconds.
+              </span>
+            ) : undefined
+          }
+        />
+        {runError && (
+          <p className="-mt-4 text-center text-sm text-error">{runError}</p>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       {heading}
 
       <Reveal>
         <RunCard
-          hasPlan={currentPlan !== null}
+          hasPlan
           tooFew={tooFew}
           running={runMutation.isPending}
-          error={runMutation.isError ? runMutation.error.message : null}
+          error={runError}
           onRun={() => runMutation.mutate()}
         />
       </Reveal>
 
-      {currentPlan && (
-        <Reveal>
-          <div className="mt-4">
-            <CurrentPlanCard
-              plan={currentPlan}
-              currentWeaknesses={currentWeaknesses}
-              onPractice={practice}
-            />
-          </div>
-        </Reveal>
-      )}
+      <Reveal>
+        <div className="mt-4">
+          <CurrentPlanCard
+            plan={currentPlan}
+            currentWeaknesses={currentWeaknesses}
+            onPractice={practice}
+          />
+        </div>
+      </Reveal>
 
       <PlanHistory plans={pastPlans} />
     </>

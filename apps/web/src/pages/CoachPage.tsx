@@ -155,8 +155,8 @@ export function CoachPage() {
             <p className="text-error">{error.message}</p>
           ) : thread.length === 0 ? (
             <div className="flex flex-col items-center py-10 text-center">
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-accent ring-1 ring-primary/15">
-                <Sparkles className="size-6" />
+              <span className="animate-float flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-primary/30 to-accent/10 text-accent shadow-glow ring-1 ring-primary/30">
+                <Sparkles className="size-6" strokeWidth={1.75} />
               </span>
               <h2 className="mt-4 font-heading text-lg font-semibold text-foreground">
                 Your typing coach

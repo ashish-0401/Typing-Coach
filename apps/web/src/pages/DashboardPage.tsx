@@ -10,13 +10,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Activity, Gauge, Target, Trophy } from 'lucide-react';
+import { Activity, Gauge, Play, Target, Trophy } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { fetchAnalyticsSummary } from '../lib/api';
 import { cn } from '@/lib/utils';
 import { SessionHistoryTable } from '../components/sessions/SessionHistoryTable';
 import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Sparkline } from '../components/ui/Sparkline';
@@ -125,21 +125,20 @@ export function DashboardPage() {
     return (
       <>
         {heading}
-        {drillToggle}
-        <Reveal>
-          <Card className="max-w-xl">
-            <h2 className="font-heading text-lg font-semibold text-foreground">
-              No sessions yet
-            </h2>
-            <p className="mt-1 text-muted">
-              Take your first typing test and your WPM, accuracy and trend will
-              appear right here.
-            </p>
-            <Button asChild className="mt-5">
-              <Link to="/practice">Start a typing test</Link>
+        <EmptyState
+          icon={Gauge}
+          eyebrow="Your progress"
+          title="No sessions yet"
+          description="Take your first typing test and your speed, accuracy, and trend will start taking shape right here."
+          action={
+            <Button asChild>
+              <Link to="/practice">
+                <Play className="size-4" />
+                Start a typing test
+              </Link>
             </Button>
-          </Card>
-        </Reveal>
+          }
+        />
       </>
     );
   }
