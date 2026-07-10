@@ -7,7 +7,8 @@ improvement, and acts as a long-term coach.
 > **Typing is only the first skill module.** The architecture is designed to add more
 > skills (Coding, Interview Prep, Vocabulary, Language Learning) without major refactoring.
 
-> Status: 🌱 Phase 1 (MVP) — in progress ·
+> Status: all six phases (MVP through the LangGraph agents) are implemented and run
+> locally. The remaining work is shipping it (CI, Docker, hosting). ·
 > Full design: [docs/AI-Practice-Coach-Design.md](docs/AI-Practice-Coach-Design.md)
 
 ## 🎯 Goals
@@ -34,6 +35,8 @@ improvement, and acts as a long-term coach.
 vector databases, Kubernetes.
 
 ## 🗺️ Roadmap
+
+> All six phases below are implemented and running locally.
 
 | Phase | Focus | Highlights |
 |---|---|---|
@@ -71,9 +74,28 @@ ai-practice-coach/
 
 ## 🚀 Getting Started
 
-> Setup commands will be filled in once the `web` and `api` apps are scaffolded.
-> Planned: `npm install` per app, a MongoDB Atlas connection string via `.env`, and
-> `npm run dev` to run frontend and backend locally.
+**Prerequisites:** Node 20+, npm, and a free MongoDB Atlas connection string.
+
+```bash
+# 1. Clone
+git clone https://github.com/ashish-0401/Typing-Coach.git
+cd Typing-Coach
+
+# 2. Backend (apps/api)
+cd apps/api
+npm install
+cp .env.example .env      # fill in MONGODB_URI, JWT_SECRET, GROQ_API_KEY
+npm run start:dev         # serves http://localhost:3000
+
+# 3. Frontend (apps/web), in a second terminal
+cd apps/web
+npm install
+npm run dev               # serves http://localhost:5173
+```
+
+The web app calls the API at `http://localhost:3000` by default; override it with
+`VITE_API_URL` in `apps/web/.env`. To run both in containers instead, set the API
+environment variables and run `docker compose up --build` from the repo root.
 
 ## 📝 How WPM & Accuracy Are Measured
 
