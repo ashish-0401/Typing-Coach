@@ -472,7 +472,7 @@ export function TypingTestPage() {
         : 0;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto flex min-h-[calc(100vh-9rem)] max-w-4xl flex-col justify-center">
       {(justSignedUp || justLoggedIn) && user && !welcomeDismissed && (
         <Toast
           onClose={() => setWelcomeDismissed(true)}
