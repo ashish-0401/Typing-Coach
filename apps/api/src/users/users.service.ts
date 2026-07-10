@@ -28,4 +28,13 @@ export class UsersService {
   updateName(id: string, name: string): Promise<UserDocument | null> {
     return this.userModel.findByIdAndUpdate(id, { name }, { new: true }).exec();
   }
+
+  updatePasswordHash(
+    id: string,
+    passwordHash: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { passwordHash }, { new: true })
+      .exec();
+  }
 }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -30,7 +31,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string, name: string): Promise<AuthResult> {
+  async register(
+    email: string,
+    password: string,
+    name: string,
+  ): Promise<AuthResult> {
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
       throw new ConflictException('Email is already registered');
@@ -53,6 +58,30 @@ export class AuthService {
     }
 
     return this.buildAuthResult(user);
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!matches) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+    if (currentPassword === newPassword) {
+      throw new BadRequestException(
+        'New password must be different from the current one',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await this.usersService.updatePasswordHash(userId, passwordHash);
   }
 
   private async buildAuthResult(user: UserDocument): Promise<AuthResult> {

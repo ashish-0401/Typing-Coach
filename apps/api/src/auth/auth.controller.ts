@@ -11,6 +11,7 @@ import {
 import { AuthResult, AuthService, AuthUser } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import type { JwtPayload } from './types/jwt-payload';
@@ -41,6 +42,25 @@ export class AuthController {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt };
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    };
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(
+    @CurrentUser() payload: JwtPayload,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<void> {
+    await this.authService.changePassword(
+      payload.sub,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 }

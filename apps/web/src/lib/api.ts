@@ -112,6 +112,24 @@ export async function updateProfile(
   return (await response.json()) as AuthUser;
 }
 
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export async function changePassword(
+  body: ChangePasswordInput,
+): Promise<void> {
+  const response = await fetch(`${API_URL}/auth/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
+}
+
 function authHeaders(): Record<string, string> {
   const token = useAuth.getState().token;
   return token ? { Authorization: `Bearer ${token}` } : {};

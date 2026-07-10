@@ -2,7 +2,7 @@ import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Lock, Palette, User } from 'lucide-react';
-import { updateProfile } from '../lib/api';
+import { changePassword, updateProfile } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useTheme } from '../lib/theme';
 import { cn } from '@/lib/utils';
@@ -23,6 +23,9 @@ export function SettingsPage() {
 
   const currentName = user?.name ?? '';
   const [name, setName] = useState(currentName);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const initial = (currentName.trim().charAt(0) || 'U').toUpperCase();
   const memberSince = user?.createdAt
@@ -55,6 +58,35 @@ export function SettingsPage() {
       return;
     }
     mutation.mutate({ name: trimmed });
+  }
+
+  const passwordMutation = useMutation({
+    mutationFn: changePassword,
+    onSuccess: () => {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    },
+  });
+
+  const newTooShort = newPassword.length > 0 && newPassword.length < 8;
+  const passwordsMismatch =
+    confirmPassword.length > 0 && confirmPassword !== newPassword;
+  const sameAsCurrent =
+    newPassword.length > 0 && newPassword === currentPassword;
+  const canChangePassword =
+    currentPassword.length >= 8 &&
+    newPassword.length >= 8 &&
+    confirmPassword === newPassword &&
+    !sameAsCurrent &&
+    !passwordMutation.isPending;
+
+  function handlePasswordSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!canChangePassword) {
+      return;
+    }
+    passwordMutation.mutate({ currentPassword, newPassword });
   }
 
   return (
@@ -161,24 +193,70 @@ export function SettingsPage() {
 
       <Reveal delay={0.1}>
         <Card className="mt-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-elevated text-muted ring-1 ring-border">
-                <Lock className="size-4" />
-              </span>
-              <div>
-                <h2 className="font-heading text-lg font-semibold text-foreground">
-                  Password
-                </h2>
-                <p className="text-sm text-muted">
-                  Changing your password is coming soon.
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-accent ring-1 ring-primary/15">
+              <Lock className="size-4" />
+            </span>
+            <div>
+              <h2 className="font-heading text-lg font-semibold text-foreground">
+                Password
+              </h2>
+              <p className="text-sm text-muted">
+                Use at least 8 characters. You&apos;ll stay signed in.
+              </p>
             </div>
-            <Button variant="secondary" disabled>
-              Change password
-            </Button>
           </div>
+          <form onSubmit={handlePasswordSubmit} className="mt-5 space-y-3">
+            <Input
+              label="Current password"
+              type="password"
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+            <Input
+              label="New password"
+              type="password"
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              aria-invalid={newTooShort}
+            />
+            <Input
+              label="Confirm new password"
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              aria-invalid={passwordsMismatch}
+            />
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-xs">
+                {newTooShort ? (
+                  <span className="text-error">
+                    New password needs 8+ characters.
+                  </span>
+                ) : passwordsMismatch ? (
+                  <span className="text-error">Passwords don&apos;t match.</span>
+                ) : sameAsCurrent ? (
+                  <span className="text-error">
+                    New password must differ from the current one.
+                  </span>
+                ) : passwordMutation.isSuccess ? (
+                  <span className="text-success">Password updated.</span>
+                ) : passwordMutation.isError ? (
+                  <span className="text-error">
+                    {passwordMutation.error.message}
+                  </span>
+                ) : (
+                  <span className="text-muted">Choose a new password.</span>
+                )}
+              </p>
+              <Button type="submit" disabled={!canChangePassword}>
+                {passwordMutation.isPending ? 'Updating...' : 'Update password'}
+              </Button>
+            </div>
+          </form>
         </Card>
       </Reveal>
     </div>
