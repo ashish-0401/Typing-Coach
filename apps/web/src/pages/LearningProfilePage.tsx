@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Award, Loader2, Sparkles, TrendingDown } from 'lucide-react';
+import { Award, Loader2, Play, Sparkles, TrendingDown } from 'lucide-react';
 import {
   fetchLatestDiagnosis,
   fetchLearningProfile,
@@ -11,6 +11,7 @@ import { milestoneLabel } from '../lib/milestones';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
 import { SpotlightCard } from '../components/ui/SpotlightCard';
@@ -224,20 +225,20 @@ export function LearningProfilePage() {
     return (
       <>
         {heading}
-        <Reveal>
-          <Card className="max-w-xl">
-            <h2 className="font-heading text-lg font-semibold text-foreground">
-              No insights yet
-            </h2>
-            <p className="mt-1 text-muted">
-              Finish a few tests and your coach will analyze your typing here:
-              the patterns, weak spots and milestones behind your numbers.
-            </p>
-            <Button asChild className="mt-5">
-              <Link to="/practice">Start a typing test</Link>
+        <EmptyState
+          icon={Sparkles}
+          eyebrow="Insights"
+          title="No insights yet"
+          description="Finish a few tests and your coach will analyze your typing here: the patterns, weak spots, and milestones behind your numbers."
+          action={
+            <Button asChild>
+              <Link to="/practice">
+                <Play className="size-4" />
+                Start a typing test
+              </Link>
             </Button>
-          </Card>
-        </Reveal>
+          }
+        />
       </>
     );
   }

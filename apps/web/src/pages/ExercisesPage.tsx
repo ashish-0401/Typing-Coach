@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
 import { DrillRunner } from '../components/typing/DrillRunner';
@@ -149,6 +150,41 @@ export function ExercisesPage() {
           />
         </Card>
       </div>
+    );
+  }
+
+  // First run: nothing to train yet, so invite the user to build the data the
+  // drills are made from instead of showing an empty generator.
+  if (
+    !profileLoading &&
+    !exercisesQuery.isPending &&
+    !hasWeaknesses &&
+    exercises.length === 0
+  ) {
+    return (
+      <>
+        <PageHeading
+          title="Drills"
+          subtitle="Generate a focused passage that targets one of your weak spots, then type it."
+        />
+        <EmptyState
+          icon={Dumbbell}
+          eyebrow="Drills"
+          title="No weak spots to train yet"
+          description="Your drills are built from your real weaknesses. Take a few typing tests, then run a diagnosis so your coach knows what to work on."
+          action={
+            <Button onClick={() => navigate('/practice')}>
+              <Play className="size-4" />
+              Take a test
+            </Button>
+          }
+          secondary={
+            <Button variant="outline" onClick={() => navigate('/insights')}>
+              Run a diagnosis
+            </Button>
+          }
+        />
+      </>
     );
   }
 
