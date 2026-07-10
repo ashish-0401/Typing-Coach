@@ -1,15 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Activity,
-  Award,
-  Gauge,
-  Loader2,
-  Sparkles,
-  Target,
-  TrendingDown,
-  Trophy,
-} from 'lucide-react';
+import { Award, Loader2, Sparkles, TrendingDown } from 'lucide-react';
 import {
   fetchLatestDiagnosis,
   fetchLearningProfile,
@@ -23,8 +14,7 @@ import { Card } from '../components/ui/Card';
 import { PageHeading } from '../components/ui/PageHeading';
 import { Skeleton } from '../components/ui/Skeleton';
 import { SpotlightCard } from '../components/ui/SpotlightCard';
-import { StatCard } from '../components/ui/StatCard';
-import { Reveal, Stagger, StaggerItem } from '../components/ui/motion';
+import { Reveal } from '../components/ui/motion';
 
 const MIN_SESSIONS_TO_ANALYZE = 3;
 
@@ -260,42 +250,6 @@ export function LearningProfilePage() {
         title="Learning Profile"
         subtitle={`Built from your ${profile.totalSessions} saved ${sessionLabel}.`}
       />
-
-      <Stagger className="grid grid-cols-4 gap-4">
-        <StaggerItem>
-          <StatCard
-            label="Current WPM"
-            value={profile.currentWpm}
-            hint="Latest test"
-            icon={Gauge}
-          />
-        </StaggerItem>
-        <StaggerItem>
-          <StatCard
-            label="Avg WPM"
-            value={profile.averageWpm}
-            hint="All sessions"
-            icon={Activity}
-          />
-        </StaggerItem>
-        <StaggerItem>
-          <StatCard
-            label="Best WPM"
-            value={profile.bestWpm}
-            hint="All time"
-            icon={Trophy}
-          />
-        </StaggerItem>
-        <StaggerItem>
-          <StatCard
-            label="Avg accuracy"
-            value={Math.round(profile.averageAccuracy)}
-            suffix="%"
-            hint="All sessions"
-            icon={Target}
-          />
-        </StaggerItem>
-      </Stagger>
 
       {profile.plateauDetected && (
         <Reveal>
